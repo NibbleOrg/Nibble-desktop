@@ -1,0 +1,2973 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nibble Quick Panel — Visual Prototype</title>
+  <style>
+    /*
+      PROTOTYPE ONLY. Four structurally different Quick Panel directions,
+      switchable with ?variant=A|B|C|D. No production behavior lives here.
+    */
+    :root {
+      --motion: 200ms;
+      --ease: cubic-bezier(.2, .8, .2, 1);
+      --ink: #1f201d;
+      --muted: #77766f;
+      --line: rgba(42, 40, 34, .12);
+      --paper: #fffdf8;
+      --paper-soft: #f7f2e8;
+      --accent: #f26b3a;
+      --accent-soft: #fff0e8;
+      --focus: rgba(242, 107, 58, .24);
+      --shadow: 0 28px 90px rgba(39, 31, 22, .20), 0 8px 24px rgba(39, 31, 22, .09);
+      --radius: 26px;
+      --panel-width: 650px;
+      --panel-height: 270px;
+      --panel-border: rgba(78, 70, 55, .12);
+      color-scheme: light;
+      font-family: "Avenir Next", "SF Pro Display", "PingFang SC", "Helvetica Neue", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+    }
+
+    body {
+      overflow: hidden;
+      color: var(--ink);
+      background: #232322;
+    }
+
+    button, input, textarea { font: inherit; }
+    button { color: inherit; }
+
+    .workspace {
+      position: fixed;
+      inset: 0;
+      padding: 42px 54px;
+      background:
+        radial-gradient(circle at 80% 12%, rgba(252, 219, 144, .14), transparent 30%),
+        linear-gradient(135deg, #252725, #1e211f 58%, #282522);
+    }
+
+    .mock-mail {
+      display: grid;
+      grid-template-columns: 224px minmax(0, 1fr);
+      width: min(1180px, calc(100vw - 108px));
+      height: calc(100vh - 84px);
+      margin: 0 auto;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, .08);
+      border-radius: 22px;
+      background: #eeeae1;
+      box-shadow: 0 35px 100px rgba(0, 0, 0, .25);
+      filter: saturate(.82);
+    }
+
+    .glass-backdrop {
+      position: fixed;
+      z-index: 18;
+      top: 22px;
+      left: 50%;
+      width: min(1180px, calc(100vw - 108px));
+      height: 410px;
+      overflow: hidden;
+      pointer-events: none;
+      border-radius: 24px;
+      opacity: 0;
+      filter: blur(22px) saturate(.88);
+      transform: translateX(-50%) scale(1.035);
+      transition: opacity 180ms ease;
+      background:
+        radial-gradient(circle at 17% 29%, rgba(66, 84, 132, .96), transparent 38%),
+        radial-gradient(circle at 46% 3%, rgba(134, 158, 205, .78), transparent 36%),
+        radial-gradient(circle at 77% 25%, rgba(239, 181, 96, .88), transparent 39%),
+        linear-gradient(105deg, #465578 0 35%, #dfc196 61%, #f1e0c5 100%);
+      -webkit-mask-image: linear-gradient(to bottom, #000 0 78%, transparent 100%);
+      mask-image: linear-gradient(to bottom, #000 0 78%, transparent 100%);
+    }
+
+    body[data-preview-variant="D"] .glass-backdrop { opacity: .82; }
+
+    .glass-backdrop::before {
+      position: absolute;
+      top: 50px;
+      left: 38%;
+      width: 250px;
+      height: 154px;
+      border: 1px solid rgba(255, 255, 255, .24);
+      border-radius: 19px;
+      background:
+        linear-gradient(125deg, rgba(255, 255, 255, .22), rgba(255, 255, 255, .03)),
+        linear-gradient(160deg, #a9bbe2, #5876ab);
+      box-shadow: 0 24px 50px rgba(24, 32, 54, .27);
+      content: "";
+      transform: rotate(-3deg);
+    }
+
+    .glass-backdrop::after {
+      position: absolute;
+      top: 88px;
+      right: 12%;
+      width: 176px;
+      height: 176px;
+      border-radius: 42px;
+      background:
+        radial-gradient(circle at 34% 36%, #fef4df 0 14%, transparent 15%),
+        linear-gradient(145deg, #f08d54, #dfb15e 48%, #d9d0a3);
+      box-shadow: 0 28px 65px rgba(100, 53, 18, .22);
+      content: "";
+      transform: rotate(9deg);
+    }
+
+    .glass-code {
+      position: absolute;
+      top: 104px;
+      left: 9%;
+      display: grid;
+      gap: 9px;
+      color: rgba(255, 255, 255, .60);
+      font-family: "SFMono-Regular", Menlo, monospace;
+      font-size: 13px;
+      line-height: 1;
+    }
+
+    .glass-code span:nth-child(2n) { width: 82px; opacity: .54; }
+    .glass-code span:nth-child(3n) { width: 122px; color: rgba(255, 211, 146, .64); }
+
+    .mail-sidebar {
+      padding: 26px 20px;
+      background: #e3ded3;
+      border-right: 1px solid rgba(60, 51, 38, .10);
+    }
+
+    .mail-logo {
+      margin-bottom: 28px;
+      font-family: Georgia, "Songti SC", serif;
+      font-size: 25px;
+      font-weight: 700;
+      letter-spacing: -.04em;
+    }
+
+    .mail-sidebar button {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      width: 100%;
+      padding: 9px 11px;
+      border: 0;
+      border-radius: 9px;
+      background: transparent;
+      color: #5e5a51;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    .mail-sidebar button.active {
+      background: rgba(255, 255, 255, .72);
+      color: #292720;
+      font-weight: 600;
+    }
+
+    .mail-main {
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      min-width: 0;
+      background: #faf8f3;
+    }
+
+    .mail-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 19px 24px;
+      border-bottom: 1px solid rgba(60, 51, 38, .09);
+      color: #6e6a60;
+      font-size: 12px;
+    }
+
+    .mail-subject {
+      padding: 25px 32px 18px;
+      border-bottom: 1px solid rgba(60, 51, 38, .09);
+    }
+
+    .mail-subject small {
+      color: #8c877d;
+      font-size: 11px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .mail-subject h1 {
+      margin: 7px 0 4px;
+      font-family: Georgia, "Songti SC", serif;
+      font-size: 23px;
+      font-weight: 500;
+    }
+
+    .mail-body {
+      max-width: 700px;
+      padding: 32px;
+      color: #5c584f;
+      font-size: 14px;
+      line-height: 1.75;
+    }
+
+    .mail-body p { margin: 0 0 15px; }
+
+    .mail-compose {
+      position: absolute;
+      right: 92px;
+      bottom: 58px;
+      width: min(560px, 48vw);
+      height: 112px;
+      padding: 18px 20px;
+      border: 1px solid rgba(61, 52, 40, .14);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, .94);
+      box-shadow: 0 18px 44px rgba(48, 42, 34, .12);
+    }
+
+    .mail-compose::before {
+      content: "Reply — focus returns here";
+      display: block;
+      margin-bottom: 12px;
+      color: #918b80;
+      font-size: 10px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .mail-compose input {
+      width: 100%;
+      border: 0;
+      outline: 0;
+      color: #4a473f;
+      background: transparent;
+    }
+
+    .panel-stage {
+      position: fixed;
+      z-index: 20;
+      top: 52px;
+      left: 50%;
+      transform: translateX(-50%);
+      transform-origin: top center;
+      pointer-events: none;
+    }
+
+    .quick-panel {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      width: var(--panel-width);
+      height: var(--panel-height);
+      overflow: hidden;
+      pointer-events: auto;
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius);
+      background: var(--paper);
+      box-shadow: var(--shadow);
+      transform: translateY(-9px) scale(.975);
+      transform-origin: top center;
+      opacity: 0;
+      transition:
+        width var(--motion) var(--ease),
+        height var(--motion) var(--ease),
+        border-radius var(--motion) var(--ease),
+        transform calc(var(--motion) * .8) var(--ease),
+        opacity calc(var(--motion) * .72) ease,
+        box-shadow var(--motion) ease;
+    }
+
+    .panel-stage.is-open .quick-panel {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+    }
+
+    .panel-stage.is-closing .quick-panel {
+      transform: translateY(-7px) scale(.978);
+      opacity: 0;
+    }
+
+    .panel-stage[hidden] { display: none; }
+
+    .panel-content {
+      position: relative;
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      flex-direction: column;
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity calc(var(--motion) * .64) ease, transform var(--motion) var(--ease);
+    }
+
+    .quick-panel.is-swapping .panel-content {
+      opacity: 0;
+      transform: translateY(5px);
+    }
+
+    .panel-stage[data-view="clipboard"] {
+      --panel-width: 790px;
+      --panel-height: 590px;
+    }
+
+    .panel-stage[data-view="base64"] {
+      --panel-width: 850px;
+      --panel-height: 630px;
+    }
+
+    .panel-stage[data-variant="B"][data-view="search"] {
+      --panel-width: 700px;
+      --panel-height: 244px;
+    }
+
+    .panel-stage[data-variant="B"][data-view="clipboard"] {
+      --panel-width: 790px;
+      --panel-height: 565px;
+    }
+
+    .panel-stage[data-variant="B"][data-view="base64"] {
+      --panel-width: 820px;
+      --panel-height: 610px;
+    }
+
+    .panel-stage[data-variant="C"][data-view="search"] {
+      --panel-width: 680px;
+      --panel-height: 310px;
+    }
+
+    .panel-stage[data-variant="C"][data-view="clipboard"] {
+      --panel-width: 820px;
+      --panel-height: 610px;
+    }
+
+    .panel-stage[data-variant="C"][data-view="base64"] {
+      --panel-width: 860px;
+      --panel-height: 645px;
+    }
+
+    .panel-stage[data-variant="D"][data-view="search"] {
+      --panel-width: 650px;
+      --panel-height: 264px;
+    }
+
+    .panel-stage[data-variant="D"][data-view="clipboard"] {
+      --panel-width: 790px;
+      --panel-height: 560px;
+    }
+
+    .panel-stage[data-variant="D"][data-view="base64"] {
+      --panel-width: 815px;
+      --panel-height: 600px;
+    }
+
+    /* Variant A — Linen Ledger */
+    .qp-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 47px;
+      padding: 13px 18px 10px 20px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .qp-brand {
+      display: flex;
+      gap: 9px;
+      align-items: center;
+      color: #514d43;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+
+    .qp-mark {
+      display: grid;
+      place-items: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 7px;
+      color: #fff;
+      background: #22221f;
+      font-family: Georgia, serif;
+      font-size: 13px;
+      letter-spacing: -.08em;
+    }
+
+    .quiet-button,
+    .icon-button {
+      display: inline-flex;
+      gap: 7px;
+      align-items: center;
+      justify-content: center;
+      min-height: 28px;
+      padding: 5px 9px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, .6);
+      color: #777267;
+      cursor: pointer;
+      font-size: 11px;
+    }
+
+    .quiet-button:hover,
+    .icon-button:hover { color: var(--ink); border-color: rgba(34, 32, 28, .23); }
+
+    .search-box {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      min-height: 58px;
+      margin: 12px 14px 9px;
+      padding: 0 15px;
+      border: 1px solid rgba(50, 43, 33, .14);
+      border-radius: 15px;
+      background: #fff;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .9), 0 4px 14px rgba(40, 35, 28, .035);
+    }
+
+    .search-box:focus-within {
+      border-color: rgba(242, 107, 58, .58);
+      box-shadow: 0 0 0 4px var(--focus);
+    }
+
+    .search-glyph {
+      color: #a19c91;
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .search-input {
+      flex: 1;
+      min-width: 0;
+      border: 0;
+      outline: 0;
+      color: #26241f;
+      background: transparent;
+      font-size: 18px;
+      letter-spacing: -.015em;
+    }
+
+    .search-input::placeholder { color: #aaa59a; }
+
+    .keycap {
+      display: inline-grid;
+      place-items: center;
+      min-width: 23px;
+      height: 22px;
+      padding: 0 6px;
+      border: 1px solid rgba(53, 48, 40, .12);
+      border-bottom-color: rgba(53, 48, 40, .2);
+      border-radius: 6px;
+      color: #898478;
+      background: #faf8f3;
+      font-size: 10px;
+      font-weight: 600;
+      box-shadow: 0 1px 0 rgba(0, 0, 0, .04);
+    }
+
+    .tool-list {
+      display: grid;
+      gap: 4px;
+      padding: 0 14px 8px;
+    }
+
+    .tool-row {
+      display: grid;
+      grid-template-columns: 38px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      min-height: 53px;
+      padding: 7px 11px;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      background: transparent;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .tool-row:hover { background: rgba(246, 240, 230, .72); }
+
+    .tool-row.is-selected {
+      border-color: rgba(242, 107, 58, .18);
+      background: var(--accent-soft);
+    }
+
+    .tool-icon {
+      display: grid;
+      place-items: center;
+      width: 36px;
+      height: 36px;
+      border: 1px solid rgba(48, 43, 34, .1);
+      border-radius: 10px;
+      background: #fff;
+      color: #5b564d;
+      font-family: Georgia, serif;
+      font-size: 16px;
+    }
+
+    .tool-title {
+      margin-bottom: 2px;
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    .tool-note {
+      color: #8c877c;
+      font-size: 11px;
+    }
+
+    .row-enter {
+      color: #9a958a;
+      font-size: 10px;
+      opacity: 0;
+      transition: opacity 120ms ease;
+    }
+
+    .tool-row.is-selected .row-enter { opacity: 1; }
+
+    .empty-search {
+      display: grid;
+      place-items: center;
+      min-height: 112px;
+      color: #918c81;
+      font-size: 12px;
+    }
+
+    .qp-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 37px;
+      margin-top: auto;
+      padding: 8px 17px;
+      border-top: 1px solid var(--line);
+      color: #969085;
+      font-size: 10px;
+    }
+
+    .footer-hints {
+      display: flex;
+      gap: 13px;
+      align-items: center;
+    }
+
+    .footer-hints span { display: flex; gap: 5px; align-items: center; }
+
+    /* Variant B — Ribbon Desk */
+    [data-variant="B"] .quick-panel {
+      --paper: #fffaf1;
+      --paper-soft: #f6eee0;
+      --accent: #bf5533;
+      --accent-soft: #fce8db;
+      --radius: 19px;
+      --ease: cubic-bezier(.16, 1, .3, 1);
+    }
+
+    [data-variant="B"] .qp-head {
+      min-height: 40px;
+      padding: 10px 16px 7px;
+      border-bottom: 0;
+    }
+
+    [data-variant="B"] .qp-brand {
+      color: #9b765f;
+      letter-spacing: .18em;
+      font-size: 9px;
+    }
+
+    [data-variant="B"] .qp-mark {
+      color: #fffaf1;
+      background: #b95435;
+      border-radius: 50%;
+    }
+
+    [data-variant="B"] .search-box {
+      min-height: 54px;
+      margin: 3px 14px 9px;
+      padding: 0 13px;
+      border: 0;
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 1px 0 rgba(68, 49, 32, .09), 0 9px 21px rgba(66, 48, 30, .06);
+    }
+
+    [data-variant="B"] .search-input { font-family: Georgia, "Songti SC", serif; font-size: 19px; }
+    [data-variant="B"] .tool-list {
+      grid-template-columns: 1fr 1fr;
+      padding: 0 14px 10px;
+      gap: 8px;
+    }
+
+    [data-variant="B"] .tool-row {
+      grid-template-columns: 30px 1fr auto;
+      min-height: 73px;
+      padding: 9px 11px;
+      border: 1px solid rgba(91, 63, 39, .10);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, .5);
+    }
+
+    [data-variant="B"] .tool-row.is-selected {
+      border-color: rgba(191, 85, 51, .3);
+      background: #fff;
+      box-shadow: inset 3px 0 0 #bf5533;
+    }
+
+    [data-variant="B"] .tool-icon {
+      width: 30px;
+      height: 45px;
+      border: 0;
+      border-radius: 0;
+      border-left: 1px solid rgba(120, 77, 47, .19);
+      background: transparent;
+    }
+
+    [data-variant="B"] .qp-footer {
+      border-top-style: dashed;
+      border-top-color: rgba(94, 63, 37, .16);
+    }
+
+    /* Variant C — Toy Precision */
+    [data-variant="C"] .quick-panel {
+      --paper: #fffdf8;
+      --paper-soft: #f2f5ed;
+      --accent: #1f6b5b;
+      --accent-soft: #e4f2ec;
+      --ink: #1b221e;
+      --radius: 22px;
+      --ease: cubic-bezier(.34, 1.25, .64, 1);
+      background:
+        linear-gradient(rgba(37, 79, 60, .032) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(37, 79, 60, .032) 1px, transparent 1px),
+        #fffdf8;
+      background-size: 22px 22px;
+    }
+
+    [data-variant="C"] .qp-head {
+      min-height: 48px;
+      padding: 12px 18px;
+      border-bottom: 1px dashed rgba(37, 79, 60, .16);
+    }
+
+    [data-variant="C"] .qp-brand { color: #52665c; letter-spacing: .17em; }
+
+    [data-variant="C"] .qp-mark {
+      color: #fffdf8;
+      background: #1f6b5b;
+      border-radius: 50% 50% 42% 58%;
+      transform: rotate(-5deg);
+    }
+
+    [data-variant="C"] .search-box {
+      min-height: 68px;
+      margin: 15px 16px 10px;
+      padding: 0 17px;
+      border: 2px solid #1f2521;
+      border-radius: 14px;
+      box-shadow: 5px 5px 0 #dcebd9;
+    }
+
+    [data-variant="C"] .search-input {
+      font-size: 20px;
+      font-weight: 650;
+    }
+
+    [data-variant="C"] .search-glyph { color: #1f6b5b; }
+
+    [data-variant="C"] .tool-list {
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 0 16px 10px;
+    }
+
+    [data-variant="C"] .tool-row {
+      grid-template-columns: 1fr auto;
+      min-height: 77px;
+      padding: 11px 13px;
+      border: 1.5px solid rgba(31, 37, 33, .15);
+      border-radius: 13px;
+      background: rgba(255, 255, 255, .72);
+    }
+
+    [data-variant="C"] .tool-row.is-selected {
+      border-color: #1f6b5b;
+      background: #fff;
+      box-shadow: 3px 3px 0 #c9e4d8;
+    }
+
+    [data-variant="C"] .tool-icon {
+      display: none;
+    }
+
+    [data-variant="C"] .tool-row::before {
+      content: "01";
+      align-self: start;
+      color: #9aaba2;
+      font-family: "SFMono-Regular", Menlo, monospace;
+      font-size: 9px;
+    }
+
+    [data-variant="C"] .tool-row:nth-child(2)::before { content: "02"; }
+    [data-variant="C"] .qp-footer {
+      border-top: 1px dashed rgba(37, 79, 60, .17);
+      color: #718077;
+    }
+
+    /* Variant D — Frosted pane */
+    [data-variant="D"] .quick-panel {
+      --ink: #22231f;
+      --muted: #6d6e67;
+      --line: rgba(48, 48, 43, .11);
+      --paper: rgba(255, 253, 248, .38);
+      --paper-soft: rgba(255, 255, 255, .34);
+      --accent: #d4613d;
+      --accent-soft: rgba(255, 248, 237, .66);
+      --focus: rgba(255, 255, 255, .46);
+      --radius: 25px;
+      --ease: cubic-bezier(.18, .86, .25, 1);
+      isolation: isolate;
+      border-color: rgba(255, 255, 255, .76);
+      background:
+        radial-gradient(circle at 17% 0%, rgba(255, 255, 255, .48), transparent 30%),
+        radial-gradient(circle at 94% 15%, rgba(255, 239, 207, .22), transparent 38%),
+        linear-gradient(145deg, rgba(255, 255, 255, .47), rgba(246, 242, 233, .35));
+      box-shadow:
+        0 32px 96px rgba(20, 22, 20, .30),
+        0 10px 30px rgba(20, 22, 20, .13),
+        inset 0 1px 0 rgba(255, 255, 255, .88),
+        inset 0 -1px 0 rgba(255, 255, 255, .24);
+      backdrop-filter: blur(30px) saturate(172%);
+    }
+
+    [data-variant="D"] .quick-panel::before {
+      position: absolute;
+      z-index: -1;
+      inset: 1px;
+      border-radius: calc(var(--radius) - 1px);
+      background:
+        linear-gradient(115deg, rgba(255, 255, 255, .34), transparent 28%),
+        linear-gradient(180deg, rgba(255, 255, 255, .12), transparent 58%);
+      content: "";
+      pointer-events: none;
+    }
+
+    [data-variant="D"] .quick-panel::after {
+      position: absolute;
+      z-index: 0;
+      inset: 0;
+      border-radius: inherit;
+      background:
+        linear-gradient(112deg, transparent 8%, rgba(255, 255, 255, .13) 29%, transparent 44%),
+        radial-gradient(circle at 88% 76%, rgba(255, 250, 239, .10), transparent 25%);
+      content: "";
+      pointer-events: none;
+    }
+
+    [data-variant="D"] .panel-content {
+      z-index: 1;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, .25);
+    }
+
+    [data-variant="D"] .qp-head {
+      min-height: 40px;
+      padding: 7px 17px 6px 18px;
+      border-bottom-color: rgba(46, 47, 42, .10);
+    }
+
+    [data-variant="D"] .qp-brand {
+      color: rgba(46, 47, 42, .58);
+      letter-spacing: .15em;
+      font-size: 8.5px;
+      font-weight: 650;
+    }
+
+    [data-variant="D"] .qp-mark {
+      width: 20px;
+      height: 20px;
+      color: rgba(255, 255, 255, .94);
+      background: rgba(39, 40, 36, .72);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .22);
+      backdrop-filter: blur(10px);
+    }
+
+    [data-variant="D"] .quiet-button,
+    [data-variant="D"] .icon-button {
+      min-height: 23px;
+      padding: 3px 7px;
+      border-color: rgba(255, 255, 255, .42);
+      color: rgba(50, 50, 45, .62);
+      background: rgba(255, 255, 255, .24);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .44);
+      backdrop-filter: blur(12px);
+    }
+
+    [data-variant="D"] .search-box {
+      min-height: 46px;
+      margin: 6px 14px;
+      padding: 0 14px;
+      border-color: rgba(255, 255, 255, .56);
+      border-radius: 14px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, .40), rgba(255, 255, 255, .23));
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .78),
+        inset 0 -1px 0 rgba(37, 38, 34, .04),
+        0 8px 22px rgba(48, 42, 32, .04);
+      backdrop-filter: blur(18px) saturate(135%);
+    }
+
+    [data-variant="D"] .search-box:focus-within {
+      border-color: rgba(255, 255, 255, .92);
+      box-shadow:
+        0 0 0 4px rgba(255, 255, 255, .22),
+        inset 0 1px 0 rgba(255, 255, 255, .86);
+    }
+
+    [data-variant="D"] .search-glyph {
+      display: grid;
+      place-items: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 7px;
+      color: rgba(37, 38, 34, .72);
+      background: rgba(255, 255, 255, .28);
+      font-size: 17px;
+      font-weight: 600;
+    }
+
+    [data-variant="D"] .search-input {
+      color: #20211d;
+      caret-color: #bf5d3c;
+      font-size: 19px;
+      font-weight: 610;
+      letter-spacing: -.02em;
+    }
+
+    [data-variant="D"] .search-input::placeholder { color: rgba(50, 51, 46, .57); }
+
+    [data-variant="D"] .search-box:focus-within .search-glyph {
+      color: #ad5437;
+      background: rgba(255, 243, 233, .40);
+    }
+
+    [data-variant="D"] .keycap {
+      min-width: 21px;
+      height: 20px;
+      padding: 0 5px;
+      border-color: rgba(255, 255, 255, .48);
+      border-radius: 5px;
+      color: rgba(58, 58, 53, .68);
+      background: rgba(255, 255, 255, .32);
+      font-size: 9px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .56);
+    }
+
+    [data-variant="D"] .tool-list {
+      grid-template-columns: 1fr;
+      gap: 5px;
+      padding: 0 14px 9px;
+    }
+
+    [data-variant="D"] .tool-row {
+      position: relative;
+      grid-template-columns: 31px minmax(0, 1fr) auto;
+      min-height: 46px;
+      padding: 6px 9px;
+      border-color: rgba(255, 255, 255, .28);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .13);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .28);
+      backdrop-filter: blur(12px);
+      transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
+    }
+
+    [data-variant="D"] .tool-row:hover {
+      background: rgba(255, 255, 255, .27);
+      transform: translateX(1px);
+    }
+
+    [data-variant="D"] .tool-row.is-selected {
+      border-color: rgba(255, 255, 255, .66);
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, .53), rgba(255, 252, 246, .41));
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .75),
+        0 6px 18px rgba(41, 38, 31, .06);
+    }
+
+    [data-variant="D"] .tool-row.is-selected::before {
+      position: absolute;
+      top: 9px;
+      bottom: 9px;
+      left: 0;
+      width: 2px;
+      border-radius: 0 3px 3px 0;
+      background: #cf6a45;
+      box-shadow: 0 0 8px rgba(207, 106, 69, .24);
+      content: "";
+    }
+
+    [data-variant="D"] .tool-icon {
+      width: 27px;
+      height: 27px;
+      border-radius: 8px;
+      font-size: 12px;
+    }
+
+    [data-variant="D"] .tool-title {
+      color: rgba(27, 28, 24, .84);
+      font-size: 11.5px;
+      font-weight: 680;
+    }
+
+    [data-variant="D"] .tool-note {
+      color: rgba(47, 48, 43, .60);
+      font-size: 9px;
+    }
+
+    [data-variant="D"] .tool-row.is-selected .tool-title { color: #171814; }
+    [data-variant="D"] .tool-row.is-selected .tool-note { color: rgba(42, 43, 38, .68); }
+
+    [data-variant="D"] .tool-icon {
+      border-color: rgba(255, 255, 255, .65);
+      background: rgba(255, 255, 255, .54);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .82);
+    }
+
+    [data-variant="D"] .row-enter {
+      display: grid;
+      place-items: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      color: rgba(52, 53, 48, .58);
+      background: rgba(255, 255, 255, .20);
+      opacity: .38;
+    }
+
+    [data-variant="D"] .tool-row.is-selected .row-enter {
+      color: rgba(52, 53, 48, .72);
+      background: rgba(255, 255, 255, .42);
+      opacity: 1;
+    }
+
+    [data-variant="D"] .qp-footer {
+      min-height: 30px;
+      margin: 7px 12px 14px;
+      padding: 4px 9px;
+      border: 1px solid rgba(255, 255, 255, .32);
+      border-radius: 10px;
+      color: rgba(57, 58, 53, .67);
+      background: rgba(255, 255, 255, .19);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35);
+      backdrop-filter: blur(12px);
+    }
+
+    [data-variant="D"] .footer-hints { gap: 9px; }
+
+    [data-variant="D"] .tool-header {
+      min-height: 58px;
+      padding: 9px 19px;
+      border-bottom-color: rgba(46, 47, 42, .11);
+      background: rgba(255, 255, 255, .09);
+    }
+
+    [data-variant="D"] .tool-heading strong {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -.025em;
+    }
+
+    [data-variant="D"] .tool-heading span {
+      color: rgba(61, 62, 56, .53);
+      font-size: 10px;
+    }
+
+    [data-variant="D"] .status-pill {
+      border-color: rgba(255, 255, 255, .45);
+      background: rgba(255, 255, 255, .28);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .50);
+    }
+
+    [data-variant="D"] .tool-layout {
+      display: flex;
+      flex-direction: column;
+    }
+
+    [data-variant="D"] .tool-aside {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 14px;
+      align-items: center;
+      padding: 9px 18px;
+      border-right: 0;
+      border-bottom: 1px solid rgba(255, 255, 255, .30);
+      background: rgba(255, 255, 255, .16);
+      backdrop-filter: blur(10px);
+    }
+
+    [data-variant="D"] .aside-label,
+    [data-variant="D"] .aside-copy,
+    [data-variant="D"] .aside-rule,
+    [data-variant="D"] .shortcut-list { display: none; }
+
+    [data-variant="D"] .aside-stat {
+      font-family: "SFMono-Regular", Menlo, monospace;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    [data-variant="D"] .aside-stat::before {
+      margin-right: 5px;
+      color: rgba(67, 68, 62, .52);
+      content: "ENTRIES";
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: .13em;
+    }
+
+    [data-variant="D"] .tool-main {
+      flex: 1;
+      min-height: 0;
+    }
+
+    [data-variant="D"] .clipboard-list {
+      padding: 10px 15px 14px;
+    }
+
+    [data-variant="D"] .clipboard-entry {
+      min-height: 44px;
+      border-color: transparent;
+      border-radius: 11px;
+      background: transparent;
+    }
+
+    [data-variant="D"] .clipboard-entry:hover {
+      background: rgba(255, 255, 255, .25);
+    }
+
+    [data-variant="D"] .clipboard-entry.is-selected {
+      border-color: rgba(255, 255, 255, .68);
+      background: rgba(255, 255, 255, .52);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .72),
+        0 6px 16px rgba(40, 38, 32, .05);
+    }
+
+    [data-variant="D"] .banner {
+      border-color: rgba(255, 255, 255, .48);
+      background: rgba(255, 248, 230, .54);
+      backdrop-filter: blur(10px);
+    }
+
+    [data-variant="D"] .base64-main {
+      padding: 16px 18px 14px;
+    }
+
+    [data-variant="D"] .control-group {
+      border-color: rgba(255, 255, 255, .44);
+      background: rgba(255, 255, 255, .28);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45);
+      backdrop-filter: blur(10px);
+    }
+
+    [data-variant="D"] .control-group button[aria-pressed="true"] {
+      color: #fff;
+      background: rgba(43, 44, 39, .73);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16);
+    }
+
+    [data-variant="D"] .editor-pane {
+      border-color: rgba(255, 255, 255, .51);
+      background: rgba(255, 255, 255, .28);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .55),
+        0 10px 27px rgba(40, 38, 32, .04);
+      backdrop-filter: blur(16px);
+    }
+
+    [data-variant="D"] .editor-label {
+      border-bottom-color: rgba(46, 47, 42, .09);
+      background: rgba(255, 255, 255, .14);
+    }
+
+    [data-variant="D"] .editor-textarea {
+      background: transparent;
+    }
+
+    [data-variant="D"] .editor-textarea[readonly] {
+      background: rgba(255, 255, 255, .08);
+    }
+
+    [data-variant="D"] .editor-error {
+      background: rgba(255, 239, 234, .54);
+      backdrop-filter: blur(10px);
+    }
+
+    [data-variant="D"] .primary-button {
+      border-color: rgba(45, 46, 41, .64);
+      background: rgba(41, 42, 38, .72);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16);
+      backdrop-filter: blur(12px);
+    }
+
+    [data-variant="D"] .shortcut-layer {
+      background: rgba(39, 41, 37, .18);
+      backdrop-filter: blur(12px) saturate(125%);
+    }
+
+    [data-variant="D"] .shortcut-sheet {
+      border-color: rgba(255, 255, 255, .72);
+      background: rgba(255, 253, 248, .72);
+      box-shadow:
+        0 26px 74px rgba(23, 24, 21, .22),
+        inset 0 1px 0 rgba(255, 255, 255, .78);
+      backdrop-filter: blur(25px) saturate(145%);
+    }
+
+    /* Shared tool views */
+    .tool-header {
+      display: flex;
+      align-items: center;
+      min-height: 58px;
+      padding: 10px 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .back-button {
+      display: inline-flex;
+      gap: 7px;
+      align-items: center;
+      padding: 7px 8px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: #756f64;
+      cursor: pointer;
+      font-size: 11px;
+    }
+
+    .back-button:hover { background: rgba(43, 37, 29, .055); color: var(--ink); }
+
+    .tool-heading {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-left: 10px;
+    }
+
+    .tool-heading strong {
+      font-size: 14px;
+      font-weight: 680;
+      letter-spacing: -.01em;
+    }
+
+    .tool-heading span {
+      color: #969086;
+      font-size: 10px;
+    }
+
+    .tool-header-actions {
+      display: flex;
+      gap: 7px;
+      align-items: center;
+      margin-left: auto;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      padding: 5px 8px;
+      border: 1px solid rgba(33, 31, 27, .1);
+      border-radius: 999px;
+      color: #79736a;
+      background: rgba(255, 255, 255, .68);
+      font-size: 10px;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #66a86e;
+    }
+
+    .status-dot.paused { background: #d4953f; }
+    .status-dot.error { background: #ce5749; }
+
+    .tool-layout {
+      display: grid;
+      grid-template-columns: 210px minmax(0, 1fr);
+      flex: 1;
+      min-height: 0;
+    }
+
+    .tool-aside {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      padding: 20px;
+      border-right: 1px solid var(--line);
+      background: rgba(247, 242, 232, .46);
+    }
+
+    .aside-label {
+      color: #9b958a;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+
+    .aside-stat {
+      font-family: Georgia, "Songti SC", serif;
+      font-size: 29px;
+      letter-spacing: -.04em;
+    }
+
+    .aside-copy {
+      margin-top: -11px;
+      color: #817b71;
+      font-size: 11px;
+      line-height: 1.55;
+    }
+
+    .aside-rule {
+      width: 100%;
+      height: 1px;
+      background: var(--line);
+    }
+
+    .shortcut-list {
+      display: grid;
+      gap: 9px;
+      color: #888176;
+      font-size: 10px;
+    }
+
+    .shortcut-list div { display: flex; align-items: center; justify-content: space-between; }
+
+    .tool-main {
+      display: flex;
+      min-width: 0;
+      min-height: 0;
+      flex-direction: column;
+    }
+
+    .clipboard-list {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      flex-direction: column;
+      overflow: auto;
+      padding: 10px 12px 12px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(50, 44, 35, .17) transparent;
+    }
+
+    .clipboard-entry {
+      display: grid;
+      grid-template-columns: 28px minmax(0, 1fr) auto;
+      gap: 9px;
+      align-items: start;
+      min-height: 49px;
+      padding: 9px 10px;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .clipboard-entry:hover { background: rgba(245, 240, 231, .62); }
+
+    .clipboard-entry.is-selected {
+      border-color: rgba(242, 107, 58, .19);
+      background: var(--accent-soft);
+    }
+
+    .entry-number {
+      padding-top: 2px;
+      color: #a49e93;
+      font-family: "SFMono-Regular", Menlo, monospace;
+      font-size: 9px;
+    }
+
+    .entry-preview {
+      overflow: hidden;
+      color: #3f3b34;
+      font-family: "SFMono-Regular", Menlo, "PingFang SC", monospace;
+      font-size: 11px;
+      line-height: 1.48;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .entry-meta {
+      color: #a29c91;
+      font-size: 9px;
+      white-space: nowrap;
+    }
+
+    .entry-copy {
+      color: var(--accent);
+      opacity: 0;
+    }
+
+    .clipboard-entry.is-selected .entry-copy { opacity: 1; }
+
+    .state-panel {
+      display: grid;
+      place-items: center;
+      flex: 1;
+      min-height: 0;
+      padding: 34px;
+      text-align: center;
+    }
+
+    .state-card {
+      max-width: 330px;
+    }
+
+    .state-symbol {
+      display: grid;
+      place-items: center;
+      width: 58px;
+      height: 58px;
+      margin: 0 auto 14px;
+      border: 1px dashed rgba(47, 42, 34, .24);
+      border-radius: 50%;
+      color: #8d877c;
+      font-family: Georgia, serif;
+      font-size: 24px;
+    }
+
+    .state-card h2 {
+      margin: 0 0 7px;
+      font-family: Georgia, "Songti SC", serif;
+      font-size: 20px;
+      font-weight: 500;
+    }
+
+    .state-card p {
+      margin: 0 auto 15px;
+      color: #817b71;
+      font-size: 11px;
+      line-height: 1.65;
+    }
+
+    .primary-button {
+      min-height: 34px;
+      padding: 7px 13px;
+      border: 1px solid #2b2924;
+      border-radius: 9px;
+      color: #fff;
+      background: #2b2924;
+      cursor: pointer;
+      font-size: 11px;
+    }
+
+    .primary-button:hover { background: #121210; }
+
+    [data-variant="C"] .primary-button {
+      border-color: #1f6b5b;
+      background: #1f6b5b;
+      box-shadow: 2px 2px 0 #bdd8ca;
+    }
+
+    .banner {
+      display: flex;
+      gap: 9px;
+      align-items: center;
+      margin: 10px 12px 0;
+      padding: 9px 11px;
+      border: 1px solid rgba(201, 128, 43, .18);
+      border-radius: 9px;
+      color: #7b5a2f;
+      background: #fff8e8;
+      font-size: 10px;
+    }
+
+    .banner strong { font-weight: 680; }
+
+    /* Variant-specific tool shells */
+    [data-variant="B"] .tool-header {
+      min-height: 69px;
+      padding: 13px 20px;
+      border-bottom: 1px dashed rgba(94, 63, 37, .16);
+    }
+
+    [data-variant="B"] .tool-heading strong {
+      display: block;
+      font-family: Georgia, "Songti SC", serif;
+      font-size: 21px;
+      font-weight: 500;
+    }
+
+    [data-variant="B"] .tool-heading span {
+      display: block;
+      margin-top: 2px;
+      color: #9a846f;
+    }
+
+    [data-variant="B"] .tool-layout {
+      grid-template-columns: minmax(0, 1fr) 190px;
+    }
+
+    [data-variant="B"] .tool-aside {
+      order: 2;
+      border-right: 0;
+      border-left: 1px dashed rgba(94, 63, 37, .16);
+      background: rgba(250, 241, 225, .68);
+    }
+
+    [data-variant="B"] .tool-main { order: 1; }
+    [data-variant="B"] .clipboard-entry { border-radius: 0; border-bottom-color: rgba(94, 63, 37, .06); }
+    [data-variant="B"] .clipboard-entry.is-selected {
+      border-color: transparent;
+      border-bottom-color: rgba(191, 85, 51, .18);
+      background: #fff;
+      box-shadow: inset 3px 0 0 #bf5533;
+    }
+
+    [data-variant="C"] .tool-header {
+      min-height: 66px;
+      padding: 11px 18px;
+      border-bottom: 2px solid rgba(31, 37, 33, .84);
+    }
+
+    [data-variant="C"] .tool-heading strong {
+      font-size: 16px;
+      font-weight: 760;
+    }
+
+    [data-variant="C"] .tool-layout {
+      display: flex;
+      flex-direction: column;
+    }
+
+    [data-variant="C"] .tool-aside {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 14px;
+      align-items: center;
+      padding: 9px 16px;
+      border-right: 0;
+      border-bottom: 1px dashed rgba(37, 79, 60, .18);
+      background: rgba(228, 242, 236, .58);
+    }
+
+    [data-variant="C"] .aside-label,
+    [data-variant="C"] .aside-copy,
+    [data-variant="C"] .aside-rule,
+    [data-variant="C"] .shortcut-list { display: none; }
+
+    [data-variant="C"] .aside-stat {
+      font-family: "SFMono-Regular", Menlo, monospace;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    [data-variant="C"] .tool-main {
+      flex: 1;
+      min-height: 0;
+    }
+
+    [data-variant="C"] .clipboard-list { padding: 9px 14px; }
+
+    [data-variant="C"] .clipboard-entry {
+      grid-template-columns: 35px minmax(0, 1fr) auto;
+      border-bottom: 1px solid rgba(37, 79, 60, .08);
+      border-radius: 0;
+    }
+
+    [data-variant="C"] .clipboard-entry.is-selected {
+      border-color: #1f6b5b;
+      border-radius: 9px;
+      background: #e8f4ee;
+      box-shadow: 2px 2px 0 #c6dfd3;
+    }
+
+    /* Base64 */
+    .base64-main {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      flex-direction: column;
+      padding: 14px 17px 13px;
+    }
+
+    .base64-controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .control-group {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      padding: 3px;
+      border: 1px solid rgba(49, 43, 34, .11);
+      border-radius: 9px;
+      background: rgba(255, 255, 255, .76);
+    }
+
+    .control-group > span {
+      padding: 0 5px;
+      color: #9a9489;
+      font-size: 9px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .control-group button {
+      min-height: 26px;
+      padding: 4px 8px;
+      border: 0;
+      border-radius: 6px;
+      color: #807a70;
+      background: transparent;
+      cursor: pointer;
+      font-size: 10px;
+    }
+
+    .control-group button[aria-pressed="true"] {
+      color: #fff;
+      background: #34312b;
+    }
+
+    [data-variant="C"] .control-group button[aria-pressed="true"] { background: #1f6b5b; }
+
+    .editor-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      flex: 1;
+      min-height: 0;
+      gap: 10px;
+    }
+
+    .editor-pane {
+      display: flex;
+      min-width: 0;
+      min-height: 0;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid rgba(48, 42, 33, .12);
+      border-radius: 12px;
+      background: #fff;
+    }
+
+    .editor-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 33px;
+      padding: 7px 10px;
+      border-bottom: 1px solid rgba(48, 42, 33, .09);
+      color: #918b80;
+      background: #fbf9f5;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .editor-textarea {
+      flex: 1;
+      min-height: 0;
+      width: 100%;
+      padding: 12px;
+      resize: none;
+      border: 0;
+      outline: 0;
+      color: #38352f;
+      background: transparent;
+      font-family: "SFMono-Regular", Menlo, "PingFang SC", monospace;
+      font-size: 10.5px;
+      line-height: 1.55;
+    }
+
+    .editor-textarea[readonly] { background: #fcfbf8; }
+
+    .editor-error {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      padding: 8px 10px;
+      border-top: 1px solid rgba(192, 73, 57, .14);
+      color: #a1483d;
+      background: #fff5f2;
+      font-size: 10px;
+      line-height: 1.45;
+    }
+
+    .editor-error[hidden] { display: none; }
+
+    .base64-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 38px;
+      margin-top: 9px;
+      color: #948e83;
+      font-size: 10px;
+    }
+
+    .base64-footer > div { display: flex; gap: 12px; align-items: center; }
+
+    [data-variant="B"] .base64-main {
+      padding: 16px 20px;
+      border-top: 0;
+    }
+
+    [data-variant="B"] .editor-pane {
+      border: 0;
+      border-radius: 4px;
+      box-shadow: 0 1px 0 rgba(77, 54, 35, .13), 0 12px 28px rgba(70, 49, 31, .055);
+    }
+
+    [data-variant="B"] .editor-label {
+      background: transparent;
+      border-bottom-style: dashed;
+    }
+
+    [data-variant="C"] .base64-main {
+      padding: 13px 16px;
+      background: rgba(255, 253, 248, .74);
+    }
+
+    [data-variant="C"] .editor-pane {
+      border: 1.5px solid rgba(31, 37, 33, .72);
+      border-radius: 8px;
+      box-shadow: 3px 3px 0 #dce9e1;
+    }
+
+    /* Shortcut layer */
+    .shortcut-layer {
+      position: absolute;
+      z-index: 10;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      background: rgba(38, 34, 28, .23);
+      backdrop-filter: blur(7px);
+      opacity: 0;
+      transition: opacity calc(var(--motion) * .7) ease;
+    }
+
+    .shortcut-layer.is-visible { opacity: 1; }
+
+    .shortcut-sheet {
+      width: min(550px, calc(100% - 28px));
+      padding: 22px;
+      border: 1px solid rgba(47, 42, 34, .12);
+      border-radius: 18px;
+      background: #fffdf8;
+      box-shadow: 0 22px 70px rgba(35, 29, 22, .2);
+      transform: translateY(10px) scale(.98);
+      transition: transform var(--motion) var(--ease);
+    }
+
+    .shortcut-layer.is-visible .shortcut-sheet { transform: translateY(0) scale(1); }
+
+    .shortcut-sheet-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 17px;
+    }
+
+    .shortcut-sheet h2 {
+      margin: 0 0 3px;
+      font-family: Georgia, "Songti SC", serif;
+      font-size: 21px;
+      font-weight: 500;
+    }
+
+    .shortcut-sheet p {
+      margin: 0;
+      color: #8d877d;
+      font-size: 10px;
+    }
+
+    .shortcut-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 22px;
+    }
+
+    .shortcut-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 30px;
+      border-bottom: 1px dashed rgba(49, 44, 35, .11);
+      color: #6d675d;
+      font-size: 10px;
+    }
+
+    .shortcut-item span:last-child { display: flex; gap: 4px; }
+
+    /* Prototype instrumentation */
+    .prototype-label {
+      position: fixed;
+      z-index: 30;
+      top: 18px;
+      left: 22px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      padding: 7px 10px;
+      border: 1px solid rgba(255, 255, 255, .13);
+      border-radius: 999px;
+      color: rgba(255, 255, 255, .68);
+      background: rgba(18, 18, 17, .56);
+      backdrop-filter: blur(9px);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .prototype-label::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #f29c5b;
+    }
+
+    .variant-switcher {
+      position: fixed;
+      z-index: 80;
+      bottom: 20px;
+      left: 50%;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px;
+      border: 1px solid rgba(255, 255, 255, .13);
+      border-radius: 999px;
+      color: #fff;
+      background: rgba(16, 16, 15, .9);
+      box-shadow: 0 12px 34px rgba(0, 0, 0, .28);
+      backdrop-filter: blur(13px);
+      transform: translateX(-50%);
+    }
+
+    .variant-switcher button {
+      display: grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      border: 0;
+      border-radius: 50%;
+      color: #d7d4cd;
+      background: rgba(255, 255, 255, .08);
+      cursor: pointer;
+    }
+
+    .variant-switcher button:hover { background: rgba(255, 255, 255, .16); color: #fff; }
+
+    .variant-name {
+      min-width: 188px;
+      padding: 0 8px;
+      text-align: center;
+      font-size: 10px;
+      letter-spacing: .02em;
+    }
+
+    .lab-toggle {
+      position: fixed;
+      z-index: 80;
+      right: 22px;
+      bottom: 20px;
+      min-height: 42px;
+      padding: 8px 13px;
+      border: 1px solid rgba(255, 255, 255, .15);
+      border-radius: 999px;
+      color: rgba(255, 255, 255, .78);
+      background: rgba(16, 16, 15, .78);
+      cursor: pointer;
+      backdrop-filter: blur(12px);
+      font-size: 10px;
+      letter-spacing: .06em;
+    }
+
+    .lab-panel {
+      position: fixed;
+      z-index: 79;
+      right: 22px;
+      bottom: 72px;
+      width: 310px;
+      max-height: calc(100vh - 110px);
+      overflow: auto;
+      padding: 16px;
+      border: 1px solid rgba(255, 255, 255, .13);
+      border-radius: 18px;
+      color: #e6e2da;
+      background: rgba(20, 20, 18, .92);
+      box-shadow: 0 22px 60px rgba(0, 0, 0, .3);
+      backdrop-filter: blur(18px);
+      transform: translateY(8px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 150ms ease, transform 150ms ease;
+    }
+
+    .lab-panel.is-open {
+      transform: translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .lab-panel[hidden] { display: none; }
+
+    .lab-panel h2 {
+      margin: 0 0 3px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 17px;
+      font-weight: 500;
+    }
+
+    .lab-intro {
+      margin: 0 0 14px;
+      color: #99958d;
+      font-size: 9px;
+      line-height: 1.5;
+    }
+
+    .lab-section { margin-top: 13px; }
+
+    .lab-section > label {
+      display: block;
+      margin-bottom: 6px;
+      color: #9f9a91;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    .lab-options { display: flex; flex-wrap: wrap; gap: 5px; }
+
+    .lab-options button {
+      min-height: 27px;
+      padding: 4px 8px;
+      border: 1px solid rgba(255, 255, 255, .10);
+      border-radius: 7px;
+      color: #c3beb5;
+      background: rgba(255, 255, 255, .045);
+      cursor: pointer;
+      font-size: 9px;
+    }
+
+    .lab-options button:hover { border-color: rgba(255, 255, 255, .22); color: #fff; }
+
+    .lab-options button.is-active {
+      border-color: rgba(255, 219, 181, .34);
+      color: #fff5e9;
+      background: rgba(238, 159, 94, .16);
+    }
+
+    .lab-options button.danger { color: #efafa8; }
+
+    .state-readout {
+      margin-top: 15px;
+      padding: 9px 10px;
+      overflow-wrap: anywhere;
+      border: 1px solid rgba(255, 255, 255, .07);
+      border-radius: 8px;
+      color: #8f8a81;
+      background: rgba(0, 0, 0, .18);
+      font-family: "SFMono-Regular", Menlo, monospace;
+      font-size: 8.5px;
+      line-height: 1.55;
+    }
+
+    .toast {
+      position: fixed;
+      z-index: 90;
+      right: 22px;
+      top: 20px;
+      max-width: 330px;
+      padding: 10px 13px;
+      border: 1px solid rgba(255, 255, 255, .13);
+      border-radius: 10px;
+      color: #fff;
+      background: rgba(20, 20, 18, .9);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, .25);
+      backdrop-filter: blur(10px);
+      font-size: 10px;
+      line-height: 1.45;
+      transform: translateY(-6px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 150ms ease, transform 150ms ease;
+    }
+
+    .toast.is-visible { transform: translateY(0); opacity: 1; }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .reduced-motion *,
+    .reduced-motion *::before,
+    .reduced-motion *::after {
+      transition-duration: 0ms !important;
+      animation-duration: 0ms !important;
+      scroll-behavior: auto !important;
+    }
+
+    @media (max-width: 900px) {
+      .workspace { padding: 20px; }
+      .mock-mail { width: calc(100vw - 40px); height: calc(100vh - 40px); grid-template-columns: 150px 1fr; }
+      .mail-sidebar { padding: 18px 12px; }
+      .mail-compose { display: none; }
+      .prototype-label { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { transition-duration: 0ms !important; animation-duration: 0ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="workspace">
+    <div class="glass-backdrop" aria-hidden="true">
+      <div class="glass-code">
+        <span>const quickPanel = open();</span>
+        <span>await focusTool("base64");</span>
+        <span>if (copied) restoreOrigin();</span>
+        <span>motion: 200ms;</span>
+        <span>surface: frosted-pane;</span>
+      </div>
+    </div>
+    <div class="mock-mail" aria-hidden="true">
+      <aside class="mail-sidebar">
+        <div class="mail-logo">Postcard</div>
+        <button class="active">◫　Inbox</button>
+        <button>◇　Starred</button>
+        <button>↗　Sent</button>
+        <button>⌁　Drafts</button>
+        <button>⌘　Archive</button>
+      </aside>
+      <main class="mail-main">
+        <div class="mail-toolbar">
+          <span>Inbox — 3 unread</span>
+          <span>Thursday, 12 November</span>
+        </div>
+        <section class="mail-subject">
+          <small>Project note</small>
+          <h1>Quick Panel review notes</h1>
+          <span style="color:#918b81;font-size:11px">Mina · 10:42</span>
+        </section>
+        <div class="mail-body">
+          <p>I like the idea of a surface that is useful before it becomes impressive. Fast to summon, calm to read, and specific about what it can do.</p>
+          <p>Please keep the keyboard path visible. The best version should feel precise, but not severe.</p>
+        </div>
+      </main>
+    </div>
+    <div class="mail-compose" aria-hidden="true">
+      <input id="originFocus" value="Looks good — let’s compare the three directions.">
+    </div>
+  </div>
+
+  <div class="prototype-label">Throwaway prototype · Quick Panel</div>
+
+  <main id="panelStage" class="panel-stage" data-variant="A" data-view="search" aria-label="Nibble Quick Panel">
+    <section id="quickPanel" class="quick-panel" role="dialog" aria-modal="true" aria-label="Nibble Quick Panel">
+      <div id="panelContent" class="panel-content"></div>
+    </section>
+  </main>
+
+  <button id="labToggle" class="lab-toggle" type="button" aria-expanded="false" aria-controls="labPanel">Prototype lab</button>
+  <aside id="labPanel" class="lab-panel" hidden>
+    <h2>Prototype lab</h2>
+    <p class="lab-intro">These controls are instrumentation, not part of the proposed interface.</p>
+
+    <div class="lab-section">
+      <label>Clipboard scenario</label>
+      <div class="lab-options" data-lab-group="clipboard">
+        <button data-scenario="normal">Normal</button>
+        <button data-scenario="paused">Paused</button>
+        <button data-scenario="empty">Empty</button>
+        <button data-scenario="permission">Permission</button>
+        <button data-scenario="copyError" class="danger">Copy error</button>
+      </div>
+    </div>
+
+    <div class="lab-section">
+      <label>Base64 scenario</label>
+      <div class="lab-options" data-lab-group="base64">
+        <button data-base64-preset="encode">Encode</button>
+        <button data-base64-preset="decode">Decode</button>
+        <button data-base64-preset="urlsafe">URL-safe</button>
+        <button data-base64-preset="invalid" class="danger">Invalid</button>
+      </div>
+    </div>
+
+    <div class="lab-section">
+      <label>Motion rhythm</label>
+      <div class="lab-options" data-lab-group="motion">
+        <button data-motion="150">150ms</button>
+        <button data-motion="200">200ms</button>
+        <button data-motion="250">250ms</button>
+        <button data-motion="off">Reduced</button>
+      </div>
+    </div>
+
+    <div class="lab-section">
+      <label>Flow</label>
+      <div class="lab-options">
+        <button data-action="open-shortcuts">Shortcut layer</button>
+        <button data-action="close">Close panel</button>
+        <button data-action="summon">Summon panel</button>
+      </div>
+    </div>
+
+    <div id="stateReadout" class="state-readout"></div>
+  </aside>
+
+  <nav class="variant-switcher" aria-label="Prototype variant switcher">
+    <button id="previousVariant" type="button" aria-label="Previous prototype variant">←</button>
+    <div id="variantName" class="variant-name">A · Linen ledger</div>
+    <button id="nextVariant" type="button" aria-label="Next prototype variant">→</button>
+  </nav>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div id="announcer" class="sr-only" aria-live="polite"></div>
+
+  <script>
+    const VARIANTS = {
+      A: { name: "Linen ledger" },
+      B: { name: "Ribbon desk" },
+      C: { name: "Toy precision" },
+      D: { name: "Frosted pane" }
+    };
+
+    const CLIPBOARD_ENTRIES = [
+      { text: "npm run tauri dev", time: "just now" },
+      { text: "The useful thing should feel close at hand.", time: "2 min" },
+      { text: "https://github.com/NibbleOrg/Nibble-desktop/issues/9", time: "4 min" },
+      { text: "const apiBase = \"https://api.nibble.local/v1\";", time: "8 min" },
+      { text: "Quick Panel opens near the pointer’s display, not the last display.", time: "11 min" },
+      { text: "⌥Space", time: "13 min" },
+      { text: "Calendar Import is one-way reconciliation from Calendar Sources.", time: "18 min" },
+      { text: "pnpm install && pnpm tauri build", time: "21 min" },
+      { text: "Warm paper, exact alignment, one small moment of play.", time: "26 min" },
+      { text: "zip -r nibble-macos-arm64.zip Nibble.app", time: "31 min" },
+      { text: "No third-party plugins in v1.", time: "35 min" },
+      { text: "git switch -c codex/quick-panel-visual-prototype", time: "42 min" },
+      { text: "The interface should explain itself before it explains the documentation.", time: "48 min" },
+      { text: "cargo tauri build --target aarch64-apple-darwin", time: "55 min" },
+      { text: "Capture pauses while Nibble is not running.", time: "1 hr" }
+    ];
+
+    const BASE64_PRESETS = {
+      encode: {
+        direction: "encode",
+        charset: "standard",
+        input: "你好，Nibble。\nLocal-first, keyboard-first.\nShip the small useful thing."
+      },
+      decode: {
+        direction: "decode",
+        charset: "standard",
+        input: "5L2g5aW977yMTmlibGxl44CC\nTG9jYWwtZmlyc3QsIGtleWJvYXJkLWZpcnN0LgpTaGlwIHRoZSBzbWFsbCB1c2VmdWwgdGhpbmcu"
+      },
+      urlsafe: {
+        direction: "encode",
+        charset: "urlsafe",
+        input: "https://example.com/?q=nibble&mode=quick panel"
+      },
+      invalid: {
+        direction: "decode",
+        charset: "standard",
+        input: "not-valid-base64?!"
+      }
+    };
+
+    const state = {
+      variant: new URLSearchParams(location.search).get("variant")?.toUpperCase() || "A",
+      view: "search",
+      query: "",
+      toolIndex: 0,
+      clipboardStatus: "normal",
+      clipboardSelection: 0,
+      base64: { ...BASE64_PRESETS.encode },
+      shortcutOpen: false,
+      shortcutTrigger: null,
+      panelOpen: true,
+      motion: new URLSearchParams(location.search).get("motion") || "200",
+      reduced: new URLSearchParams(location.search).get("motion") === "off",
+      labOpen: false,
+      lastEvent: "Ready"
+    };
+
+    if (!VARIANTS[state.variant]) state.variant = "A";
+
+    const panelStage = document.querySelector("#panelStage");
+    const quickPanel = document.querySelector("#quickPanel");
+    const panelContent = document.querySelector("#panelContent");
+    const variantName = document.querySelector("#variantName");
+    const labPanel = document.querySelector("#labPanel");
+    const labToggle = document.querySelector("#labToggle");
+    const stateReadout = document.querySelector("#stateReadout");
+    const announcer = document.querySelector("#announcer");
+    const toast = document.querySelector("#toast");
+    let toastTimer;
+    let lastFocusBeforeOpen = null;
+
+    function esc(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    function setMotion(value) {
+      state.motion = value;
+      state.reduced = value === "off";
+      document.documentElement.style.setProperty("--motion", state.reduced ? "0ms" : `${value}ms`);
+      document.documentElement.classList.toggle("reduced-motion", state.reduced);
+      const params = new URLSearchParams(location.search);
+      params.set("motion", value);
+      history.replaceState(null, "", `?${params.toString()}`);
+      state.lastEvent = state.reduced ? "Reduced motion enabled" : `Motion rhythm set to ${value}ms`;
+      syncInstrumentation();
+    }
+
+    function setVariant(variant, announce = true) {
+      if (!VARIANTS[variant]) return;
+      state.variant = variant;
+      document.body.dataset.previewVariant = variant;
+      const params = new URLSearchParams(location.search);
+      params.set("variant", variant);
+      history.replaceState(null, "", `?${params.toString()}`);
+      panelStage.dataset.variant = variant;
+      variantName.textContent = `${variant} · ${VARIANTS[variant].name}`;
+      state.lastEvent = `Variant ${variant} selected`;
+      if (announce) announceText(`Variant ${variant}, ${VARIANTS[variant].name}`);
+      render();
+    }
+
+    function cycleVariant(direction) {
+      const keys = Object.keys(VARIANTS);
+      const current = keys.indexOf(state.variant);
+      const next = keys[(current + direction + keys.length) % keys.length];
+      setVariant(next);
+    }
+
+    function announceText(message) {
+      announcer.textContent = "";
+      requestAnimationFrame(() => { announcer.textContent = message; });
+    }
+
+    function showToast(message) {
+      clearTimeout(toastTimer);
+      toast.textContent = message;
+      toast.classList.add("is-visible");
+      toastTimer = setTimeout(() => toast.classList.remove("is-visible"), 2600);
+    }
+
+    function setView(next, focusSelector) {
+      if (state.view === next) {
+        focusAfterRender(focusSelector);
+        return;
+      }
+
+      if (state.reduced) {
+        state.view = next;
+        render();
+        focusAfterRender(focusSelector);
+        return;
+      }
+
+      quickPanel.classList.add("is-swapping");
+      window.setTimeout(() => {
+        state.view = next;
+        panelStage.dataset.view = next;
+        render();
+        quickPanel.classList.remove("is-swapping");
+        focusAfterRender(focusSelector);
+      }, Math.max(40, Number(state.motion) * .34));
+    }
+
+    function focusAfterRender(selector) {
+      if (!selector) return;
+      requestAnimationFrame(() => {
+        const target = quickPanel.querySelector(selector);
+        target?.focus();
+      });
+    }
+
+    function filteredTools() {
+      const q = state.query.trim().toLowerCase();
+      return [
+        { id: "clipboard", name: "Clipboard History", aliases: "clipboard history copy recent text", icon: "▤", note: "Copy a recent plain-text entry" },
+        { id: "base64", name: "Base64", aliases: "base 64 encode decode base64 url safe", icon: "B6", note: "Encode or decode UTF-8 text" }
+      ].filter((tool) => !q || `${tool.name} ${tool.aliases}`.includes(q));
+    }
+
+    function searchResultsMarkup(tools) {
+      if (!tools.length) {
+        return `<div class="empty-search">没有匹配的工具。这里只搜索工具名称。</div>`;
+      }
+      return `
+        <div class="tool-list" role="listbox" aria-label="Quick Panel tools">
+          ${tools.map((tool, index) => `
+            <button class="tool-row ${index === state.toolIndex ? "is-selected" : ""}" data-tool="${tool.id}" role="option" aria-selected="${index === state.toolIndex}">
+              <span class="tool-icon" aria-hidden="true">${tool.icon}</span>
+              <span>
+                <span class="tool-title">${esc(tool.name)}</span><br>
+                <span class="tool-note">${esc(tool.note)}</span>
+              </span>
+              <span class="row-enter">↵</span>
+            </button>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function bindSearchRows(tools) {
+      panelContent.querySelectorAll("[data-tool]").forEach((button) => {
+        button.addEventListener("click", () => enterTool(button.dataset.tool));
+        button.addEventListener("mousemove", () => {
+          const index = tools.findIndex((tool) => tool.id === button.dataset.tool);
+          if (index >= 0 && index !== state.toolIndex && state.view === "search") {
+            state.toolIndex = index;
+            panelContent.querySelectorAll("[data-tool]").forEach((row, rowIndex) => {
+              row.classList.toggle("is-selected", rowIndex === index);
+              row.setAttribute("aria-selected", String(rowIndex === index));
+            });
+          }
+        });
+      });
+    }
+
+    function updateSearchResults() {
+      const tools = filteredTools();
+      state.toolIndex = Math.max(0, Math.min(state.toolIndex, Math.max(0, tools.length - 1)));
+      const results = panelContent.querySelector("#searchResults");
+      if (!results) return;
+      results.innerHTML = searchResultsMarkup(tools);
+      bindSearchRows(tools);
+      syncInstrumentation();
+    }
+
+    function renderSearch() {
+      const tools = filteredTools();
+      state.toolIndex = Math.max(0, Math.min(state.toolIndex, Math.max(0, tools.length - 1)));
+
+      panelContent.innerHTML = `
+        ${renderHeader()}
+        <div class="search-box">
+          <span class="search-glyph" aria-hidden="true">⌕</span>
+          <input id="toolSearch" class="search-input" type="text" autocomplete="off" spellcheck="false"
+            placeholder="Search tools" aria-label="Search Quick Panel tools" value="${esc(state.query)}">
+          <span class="keycap">esc</span>
+        </div>
+        <div id="searchResults">${searchResultsMarkup(tools)}</div>
+        ${renderSearchFooter()}
+      `;
+
+      const input = panelContent.querySelector("#toolSearch");
+      input.addEventListener("input", (event) => {
+        state.query = event.target.value;
+        state.toolIndex = 0;
+        state.lastEvent = `Tool search: “${state.query}”`;
+        updateSearchResults();
+      });
+
+      bindSearchRows(tools);
+
+      panelContent.querySelectorAll("[data-open-shortcuts]").forEach((button) => {
+        button.addEventListener("click", () => openShortcuts(button));
+      });
+      syncInstrumentation();
+    }
+
+    function renderHeader() {
+      if (state.variant === "B") {
+        return `
+          <header class="qp-head">
+            <div class="qp-brand"><span class="qp-mark">n</span><span>Nibble · Quick Panel</span></div>
+            <button class="quiet-button" type="button" data-open-shortcuts>Shortcuts <span class="keycap">?</span></button>
+          </header>
+        `;
+      }
+      if (state.variant === "C") {
+        return `
+          <header class="qp-head">
+            <div class="qp-brand"><span class="qp-mark">n</span><span>Nibble / Quick Panel</span></div>
+            <button class="quiet-button" type="button" data-open-shortcuts>快捷键 <span class="keycap">?</span></button>
+          </header>
+        `;
+      }
+      if (state.variant === "D") {
+        return `
+          <header class="qp-head">
+            <div class="qp-brand"><span class="qp-mark">n</span><span>Nibble · Quick Panel</span></div>
+            <button class="quiet-button" type="button" data-open-shortcuts>快捷键 <span class="keycap">?</span></button>
+          </header>
+        `;
+      }
+      return `
+        <header class="qp-head">
+          <div class="qp-brand"><span class="qp-mark">n</span><span>Nibble · Quick Panel</span></div>
+          <button class="quiet-button" type="button" data-open-shortcuts>Shortcuts <span class="keycap">?</span></button>
+        </header>
+      `;
+    }
+
+    function renderSearchFooter() {
+      return `
+        <footer class="qp-footer">
+          <div class="footer-hints">
+            <span><span class="keycap">↑</span><span class="keycap">↓</span> 选择</span>
+            <span><span class="keycap">↵</span> 打开</span>
+            <span><span class="keycap">esc</span> 关闭</span>
+          </div>
+          <span>${state.variant === "C" || state.variant === "D" ? "只搜索工具，不搜索 Clipboard Entry" : "2 tools"}</span>
+        </footer>
+      `;
+    }
+
+    function renderToolHeader(toolName, subtitle) {
+      const clipboardStatus = state.clipboardStatus === "paused" ? "已暂停" : state.clipboardStatus === "permission" ? "需要权限" : "记录中";
+      const statusClass = state.clipboardStatus === "paused" ? "paused" : state.clipboardStatus === "permission" ? "error" : "";
+      return `
+        <header class="tool-header">
+          <button class="back-button" type="button" data-back aria-label="返回工具搜索">
+            <span aria-hidden="true">←</span> 返回
+          </button>
+          <div class="tool-heading">
+            <div>
+              <strong>${esc(toolName)}</strong>
+              <span>${esc(subtitle)}</span>
+            </div>
+          </div>
+          <div class="tool-header-actions">
+            ${toolName === "Clipboard History" ? `
+              <span class="status-pill"><span class="status-dot ${statusClass}"></span>${clipboardStatus}</span>
+            ` : ""}
+            <button class="quiet-button" type="button" data-open-shortcuts>? 快捷键</button>
+          </div>
+        </header>
+      `;
+    }
+
+    function renderClipboard() {
+      const status = state.clipboardStatus;
+      let body = "";
+
+      if (status === "empty") {
+        body = `
+          <div class="state-panel">
+            <div class="state-card">
+              <div class="state-symbol">○</div>
+              <h2>还没有 Clipboard Entry</h2>
+              <p>复制一些纯文本，再回到这里。Nibble 只在运行时记录。</p>
+              <button class="primary-button" type="button" data-action="close">关闭面板</button>
+            </div>
+          </div>
+        `;
+      } else if (status === "permission") {
+        body = `
+          <div class="state-panel">
+            <div class="state-card">
+              <div class="state-symbol">!</div>
+              <h2>无法读取剪贴板</h2>
+              <p>macOS 剪贴板权限不可用。这里会保留上下文，并给出直接、可恢复的下一步。</p>
+              <button class="primary-button" type="button" data-fake-permission>打开系统设置</button>
+            </div>
+          </div>
+        `;
+      } else {
+        if (status === "paused") {
+          body += `<div class="banner"><strong>记录已暂停</strong><span>现有条目仍可复制。按 ⌘P 或点击恢复。</span></div>`;
+        }
+        if (status === "copyError") {
+          body += `<div class="banner" style="border-color:rgba(192,73,57,.18);color:#a1483d;background:#fff5f2"><strong>复制失败</strong><span>选择仍保留，可重试。</span></div>`;
+        }
+        body += `
+          <div class="clipboard-list" role="listbox" aria-label="Clipboard Entries, newest first">
+            ${CLIPBOARD_ENTRIES.map((entry, index) => `
+              <button class="clipboard-entry ${index === state.clipboardSelection ? "is-selected" : ""}" data-entry-index="${index}" role="option" aria-selected="${index === state.clipboardSelection}">
+                <span class="entry-number">${String(index + 1).padStart(2, "0")}</span>
+                <span class="entry-preview">${esc(entry.text)}</span>
+                <span class="entry-meta">${entry.time}<span class="entry-copy"> · ↵ copy</span></span>
+              </button>
+            `).join("")}
+          </div>
+        `;
+      }
+
+      panelContent.innerHTML = `
+        ${renderToolHeader("Clipboard History", "最近 15 条 · 纯文本")}
+        <div class="tool-layout">
+          <aside class="tool-aside">
+            <div>
+              <div class="aside-label">Recent entries</div>
+              <div class="aside-stat">15</div>
+              <div class="aside-copy">Newest first. No entry search, pinning, or detail view.</div>
+            </div>
+            <div class="aside-rule"></div>
+            <div class="shortcut-list">
+              <div><span>选择</span><span>↑ ↓</span></div>
+              <div><span>复制并关闭</span><span>↵</span></div>
+              <div><span>暂停 / 恢复</span><span>⌘P</span></div>
+              <div><span>返回工具</span><span>⌘[</span></div>
+            </div>
+            <button class="primary-button" type="button" data-toggle-pause style="margin-top:auto">${status === "paused" ? "恢复记录" : "暂停记录"}</button>
+          </aside>
+          <section class="tool-main">${body}</section>
+        </div>
+        ${renderToolFooter("Clipboard")}
+      `;
+      bindToolEvents();
+    }
+
+    function renderBase64() {
+      const computed = computeBase64();
+      state.lastComputedResult = computed.value;
+      panelContent.innerHTML = `
+        ${renderToolHeader("Base64", "UTF-8 · 保留换行")}
+        <div class="base64-main">
+          <div class="base64-controls">
+            <div class="control-group" data-control="direction">
+              <span>Direction</span>
+              <button type="button" data-base64-direction="encode" aria-pressed="${state.base64.direction === "encode"}">Encode</button>
+              <button type="button" data-base64-direction="decode" aria-pressed="${state.base64.direction === "decode"}">Decode</button>
+            </div>
+            <div class="control-group" data-control="charset">
+              <span>Alphabet</span>
+              <button type="button" data-base64-charset="standard" aria-pressed="${state.base64.charset === "standard"}">Standard</button>
+              <button type="button" data-base64-charset="urlsafe" aria-pressed="${state.base64.charset === "urlsafe"}">URL-safe</button>
+            </div>
+          </div>
+          <div class="editor-grid">
+            <section class="editor-pane">
+              <div class="editor-label"><span>${state.base64.direction === "encode" ? "Plain text" : "Base64"}</span><span>${state.base64.charset === "urlsafe" ? "URL-safe" : "Standard"}</span></div>
+              <textarea id="base64Input" class="editor-textarea" spellcheck="false" aria-label="Base64 input">${esc(state.base64.input)}</textarea>
+              <div id="base64ErrorSlot" class="editor-error" ${computed.error ? "" : "hidden"}><strong>!</strong><span>${esc(computed.error)}</span></div>
+            </section>
+            <section class="editor-pane">
+              <div class="editor-label"><span>${state.base64.direction === "encode" ? "Base64" : "Plain text"}</span><span id="base64ResultMeta">${computed.error ? "无结果" : `${computed.value.length} chars`}</span></div>
+              <textarea id="base64Result" class="editor-textarea" readonly aria-label="Base64 result">${esc(computed.value)}</textarea>
+            </section>
+          </div>
+          <div class="base64-footer">
+            <div>
+              <span><span class="keycap">Tab</span> 切换控件</span>
+              <span><span class="keycap">⌘↵</span> 复制并关闭</span>
+            </div>
+            <button class="primary-button" type="button" data-copy-base64 ${computed.error ? "disabled" : ""}>复制结果</button>
+          </div>
+        </div>
+        ${renderToolFooter("Base64")}
+      `;
+
+      const textarea = panelContent.querySelector("#base64Input");
+      textarea.addEventListener("input", (event) => {
+        state.base64.input = event.target.value;
+        state.lastEvent = "Base64 input updated";
+        updateBase64Output();
+      });
+
+      panelContent.querySelectorAll("[data-base64-direction]").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.base64.direction = button.dataset.base64Direction;
+          state.lastEvent = `Base64 direction: ${state.base64.direction}`;
+          render();
+          focusAfterRender("#base64Input");
+        });
+      });
+
+      panelContent.querySelectorAll("[data-base64-charset]").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.base64.charset = button.dataset.base64Charset;
+          state.lastEvent = `Base64 alphabet: ${state.base64.charset}`;
+          render();
+          focusAfterRender("#base64Input");
+        });
+      });
+
+      panelContent.querySelector("[data-copy-base64]")?.addEventListener("click", copyBase64);
+      bindToolEvents();
+    }
+
+    function updateBase64Output() {
+      const computed = computeBase64();
+      state.lastComputedResult = computed.value;
+      const result = panelContent.querySelector("#base64Result");
+      const resultMeta = panelContent.querySelector("#base64ResultMeta");
+      const errorSlot = panelContent.querySelector("#base64ErrorSlot");
+      const copyButton = panelContent.querySelector("[data-copy-base64]");
+
+      if (result) result.value = computed.value;
+      if (resultMeta) resultMeta.textContent = computed.error ? "无结果" : `${computed.value.length} chars`;
+      if (errorSlot) {
+        errorSlot.toggleAttribute("hidden", !computed.error);
+        const detail = errorSlot.querySelector("span");
+        if (detail) detail.textContent = computed.error;
+      }
+      if (copyButton) copyButton.disabled = Boolean(computed.error);
+      syncInstrumentation();
+    }
+
+    function renderToolFooter(toolName) {
+      return `
+        <footer class="qp-footer">
+          <div class="footer-hints">
+            <span><span class="keycap">⌘[</span> 返回搜索</span>
+            <span><span class="keycap">esc</span> 关闭</span>
+            <span><span class="keycap">⌘,</span> 设置</span>
+          </div>
+          <span>${toolName} · same native window</span>
+        </footer>
+      `;
+    }
+
+    function bindToolEvents() {
+      panelContent.querySelector("[data-back]")?.addEventListener("click", backToSearch);
+      panelContent.querySelectorAll("[data-open-shortcuts]").forEach((button) => {
+        button.addEventListener("click", () => openShortcuts(button));
+      });
+      panelContent.querySelector("[data-toggle-pause]")?.addEventListener("click", togglePause);
+      panelContent.querySelector("[data-fake-permission]")?.addEventListener("click", () => {
+        state.lastEvent = "Permission state: would open the relevant macOS settings";
+        showToast("Prototype: this would open the relevant macOS permission settings.");
+      });
+      panelContent.querySelectorAll("[data-entry-index]").forEach((button) => {
+        button.addEventListener("click", () => copyClipboard(Number(button.dataset.entryIndex)));
+      });
+      panelContent.querySelector("[data-action='close']")?.addEventListener("click", () => closePanel(true));
+      syncInstrumentation();
+    }
+
+    function computeBase64() {
+      const { direction, charset, input } = state.base64;
+      try {
+        if (direction === "encode") {
+          const bytes = new TextEncoder().encode(input);
+          let binary = "";
+          bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
+          let result = btoa(binary);
+          if (charset === "urlsafe") result = result.replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/g, "");
+          return { value: result, error: "" };
+        }
+
+        let normalized = input.replace(/\s+/g, "");
+        if (charset === "urlsafe") normalized = normalized.replaceAll("-", "+").replaceAll("_", "/");
+        if (!normalized || !/^[A-Za-z0-9+/]*={0,2}$/.test(normalized)) {
+          return { value: "", error: "这不是有效的 Base64。输入保留，修正后再试。" };
+        }
+        normalized += "=".repeat((4 - normalized.length % 4) % 4);
+        const binary = atob(normalized);
+        const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+        const value = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+        return { value, error: "" };
+      } catch (error) {
+        return { value: "", error: "不是可解码的 UTF-8 Base64。不会生成部分结果。" };
+      }
+    }
+
+    function enterTool(toolId) {
+      if (quickPanel.classList.contains("is-swapping")) return;
+      state.query = "";
+      state.clipboardSelection = 0;
+      state.lastEvent = `Opened ${toolId === "clipboard" ? "Clipboard History" : "Base64"}`;
+      setView(toolId, toolId === "clipboard" ? "[data-entry-index='0']" : "#base64Input");
+    }
+
+    function backToSearch() {
+      if (quickPanel.classList.contains("is-swapping")) return;
+      state.shortcutOpen = false;
+      state.query = "";
+      state.clipboardSelection = 0;
+      state.toolIndex = 0;
+      state.lastEvent = "Returned to tool search";
+      setView("search", "#toolSearch");
+    }
+
+    function togglePause() {
+      if (state.clipboardStatus === "paused") {
+        state.clipboardStatus = "normal";
+        state.lastEvent = "Clipboard capture resumed";
+      } else {
+        state.clipboardStatus = "paused";
+        state.lastEvent = "Clipboard capture paused";
+      }
+      render();
+      focusAfterRender("[data-toggle-pause]");
+    }
+
+    async function copyClipboard(index = state.clipboardSelection) {
+      if (state.clipboardStatus === "copyError") {
+        state.lastEvent = "Copy failed; selection preserved";
+        render();
+        showToast("Copy failed. The selection remains available to retry.");
+        return;
+      }
+      if (!CLIPBOARD_ENTRIES[index]) return;
+      try {
+        await navigator.clipboard.writeText(CLIPBOARD_ENTRIES[index].text);
+      } catch (error) {
+        state.lastEvent = "Clipboard write permission failed";
+        showToast("Browser clipboard permission failed. In the desktop app this is a local failure state.");
+      }
+      state.lastEvent = `Copied Clipboard Entry ${index + 1}; panel dismisses`;
+      closePanel(true, "Clipboard Entry copied. Postcard regains application focus.");
+    }
+
+    async function copyBase64() {
+      const computed = computeBase64();
+      if (computed.error) {
+        state.lastEvent = "Copy blocked by Base64 error";
+        render();
+        focusAfterRender("#base64Input");
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(computed.value);
+      } catch (error) {
+        state.lastEvent = "Clipboard write permission failed";
+        showToast("Browser clipboard permission failed. In the desktop app this is a local failure state.");
+      }
+      state.lastEvent = "Base64 result copied; panel dismisses";
+      closePanel(true, "Base64 result copied. Postcard regains application focus.");
+    }
+
+    function openShortcuts(trigger) {
+      state.shortcutOpen = true;
+      state.shortcutTrigger = trigger;
+      state.lastEvent = "Shortcut reference opened";
+      renderShortcutLayer();
+      focusAfterRender("[data-close-shortcuts]");
+    }
+
+    function closeShortcuts() {
+      state.shortcutOpen = false;
+      state.lastEvent = "Shortcut reference closed; focus restored to trigger";
+      quickPanel.querySelector(".shortcut-layer")?.remove();
+      const trigger = state.shortcutTrigger;
+      if (trigger && document.body.contains(trigger)) {
+        trigger.focus();
+      } else {
+        focusAfterRender("#toolSearch");
+      }
+      syncInstrumentation();
+    }
+
+    function renderShortcutLayer() {
+      quickPanel.querySelector(".shortcut-layer")?.remove();
+      const layer = document.createElement("div");
+      layer.className = "shortcut-layer";
+      layer.innerHTML = `
+        <section class="shortcut-sheet" role="dialog" aria-modal="true" aria-label="Quick Panel shortcuts">
+          <div class="shortcut-sheet-head">
+            <div>
+              <h2>Quick Panel shortcuts</h2>
+              <p>临时参考层 · 第一次 Esc 只关闭这一层</p>
+            </div>
+            <button class="icon-button" type="button" data-close-shortcuts aria-label="关闭快捷键参考">Esc</button>
+          </div>
+          <div class="shortcut-grid">
+            <div class="shortcut-item"><span>显示 / 隐藏</span><span><span class="keycap">⌥</span><span class="keycap">Space</span></span></div>
+            <div class="shortcut-item"><span>关闭面板</span><span class="keycap">Esc</span></div>
+            <div class="shortcut-item"><span>返回工具搜索</span><span class="keycap">⌘[</span></div>
+            <div class="shortcut-item"><span>打开设置</span><span class="keycap">⌘,</span></div>
+            <div class="shortcut-item"><span>选择条目</span><span><span class="keycap">↑</span><span class="keycap">↓</span></span></div>
+            <div class="shortcut-item"><span>复制 / 执行</span><span class="keycap">↵</span></div>
+            <div class="shortcut-item"><span>暂停 / 恢复记录</span><span class="keycap">⌘P</span></div>
+            <div class="shortcut-item"><span>复制 Base64 结果</span><span><span class="keycap">⌘</span><span class="keycap">↵</span></span></div>
+          </div>
+        </section>
+      `;
+      quickPanel.appendChild(layer);
+      requestAnimationFrame(() => layer.classList.add("is-visible"));
+      layer.querySelector("[data-close-shortcuts]").addEventListener("click", closeShortcuts);
+    }
+
+    function closePanel(restoreOrigin, message) {
+      if (!state.panelOpen) return;
+      state.panelOpen = false;
+      state.shortcutOpen = false;
+      state.lastEvent = restoreOrigin ? "Panel closed; origin app regains focus" : "Panel closed; clicked app keeps focus";
+      panelStage.classList.remove("is-open");
+      panelStage.classList.add("is-closing");
+      const delay = state.reduced ? 0 : Number(state.motion) * .8;
+      setTimeout(() => {
+        panelStage.hidden = true;
+        panelStage.classList.remove("is-closing");
+        if (restoreOrigin) {
+          document.querySelector("#originFocus")?.focus();
+          showToast(message || "Quick Panel closed. Postcard regains application focus.");
+        } else {
+          showToast("Quick Panel closed. Focus follows the click, not the origin app.");
+        }
+        syncInstrumentation();
+      }, delay);
+    }
+
+    function summonPanel() {
+      lastFocusBeforeOpen = document.activeElement;
+      state.panelOpen = true;
+      state.view = "search";
+      state.query = "";
+      state.toolIndex = 0;
+      state.shortcutOpen = false;
+      state.lastEvent = "Quick Panel summoned at tool search";
+      panelStage.dataset.view = "search";
+      panelStage.hidden = false;
+      render();
+      requestAnimationFrame(() => {
+        panelStage.classList.add("is-open");
+        focusAfterRender("#toolSearch");
+      });
+    }
+
+    function setClipboardScenario(value) {
+      state.clipboardStatus = value;
+      state.lastEvent = `Clipboard scenario: ${value}`;
+      if (state.view !== "clipboard") {
+        state.query = "";
+        setView("clipboard", "[data-entry-index='0']");
+      } else {
+        render();
+      }
+      syncInstrumentation();
+    }
+
+    function setBase64Preset(name) {
+      state.base64 = { ...BASE64_PRESETS[name] };
+      state.lastEvent = `Base64 scenario: ${name}`;
+      if (state.view !== "base64") {
+        setView("base64", "#base64Input");
+      } else {
+        render();
+        focusAfterRender("#base64Input");
+      }
+      syncInstrumentation();
+    }
+
+    function syncInstrumentation() {
+      stateReadout.textContent =
+        `variant=${state.variant}  view=${state.view}  open=${state.panelOpen}\n` +
+        `query="${state.query}"  toolIndex=${state.toolIndex}\n` +
+        `clipboard=${state.clipboardStatus}  selection=${state.clipboardSelection}\n` +
+        `base64=${state.base64.direction}/${state.base64.charset}\n` +
+        `motion=${state.reduced ? "reduced" : `${state.motion}ms`}  shortcuts=${state.shortcutOpen}\n` +
+        `last=${state.lastEvent}`;
+
+      document.querySelectorAll("[data-lab-group='clipboard'] button").forEach((button) => {
+        button.classList.toggle("is-active", button.dataset.scenario === state.clipboardStatus);
+      });
+      document.querySelectorAll("[data-lab-group='motion'] button").forEach((button) => {
+        button.classList.toggle("is-active", state.reduced ? button.dataset.motion === "off" : button.dataset.motion === String(state.motion));
+      });
+      document.querySelectorAll("[data-lab-group='base64'] button").forEach((button) => {
+        const preset = button.dataset.base64Preset;
+        const matches = preset === "invalid"
+          ? computeBase64().error && state.base64.direction === "decode"
+          : state.base64.direction === BASE64_PRESETS[preset].direction && state.base64.charset === BASE64_PRESETS[preset].charset;
+        button.classList.toggle("is-active", Boolean(matches));
+      });
+    }
+
+    function render() {
+      panelStage.dataset.variant = state.variant;
+      panelStage.dataset.view = state.view;
+      if (!state.panelOpen) {
+        syncInstrumentation();
+        return;
+      }
+      if (state.view === "clipboard") renderClipboard();
+      else if (state.view === "base64") renderBase64();
+      else renderSearch();
+      if (state.shortcutOpen) renderShortcutLayer();
+      syncInstrumentation();
+    }
+
+    function isTypingTarget(target) {
+      return target instanceof HTMLElement && (
+        target.matches("input, textarea, [contenteditable='true']") ||
+        target.closest("input, textarea, [contenteditable='true']")
+      );
+    }
+
+    document.addEventListener("keydown", (event) => {
+      const command = event.metaKey || event.ctrlKey;
+      const typing = isTypingTarget(event.target);
+
+      if (event.key === "Escape") {
+        event.preventDefault();
+        if (!state.panelOpen) return;
+        if (state.shortcutOpen) {
+          closeShortcuts();
+        } else {
+          closePanel(true);
+        }
+        return;
+      }
+
+      if (!state.panelOpen) return;
+
+      if (event.key === "?" && !typing && !state.shortcutOpen) {
+        event.preventDefault();
+        openShortcuts(panelContent.querySelector("[data-open-shortcuts]"));
+        return;
+      }
+
+      if (state.shortcutOpen) return;
+
+      if (command && event.key === "[") {
+        event.preventDefault();
+        backToSearch();
+        return;
+      }
+
+      if (command && event.key === ",") {
+        event.preventDefault();
+        closePanel(false, "Prototype: this would open Workbench Settings → Quick Panel.");
+        return;
+      }
+
+      if (state.view === "search" && !typing) {
+        const tools = filteredTools();
+        if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+          event.preventDefault();
+          const delta = event.key === "ArrowDown" ? 1 : -1;
+          state.toolIndex = (state.toolIndex + delta + tools.length) % Math.max(1, tools.length);
+          renderSearch();
+          panelContent.querySelectorAll("[data-tool]")[state.toolIndex]?.focus();
+          return;
+        }
+        if (event.key === "Enter" && tools[state.toolIndex]) {
+          event.preventDefault();
+          enterTool(tools[state.toolIndex].id);
+          return;
+        }
+      }
+
+      if (state.view === "search" && typing && event.key === "Enter") {
+        const tools = filteredTools();
+        if (tools[state.toolIndex]) {
+          event.preventDefault();
+          enterTool(tools[state.toolIndex].id);
+        }
+        return;
+      }
+
+      if (state.view === "clipboard") {
+        if (command && event.key.toLowerCase() === "p") {
+          event.preventDefault();
+          togglePause();
+          return;
+        }
+        if (!typing && (event.key === "ArrowDown" || event.key === "ArrowUp")) {
+          event.preventDefault();
+          const delta = event.key === "ArrowDown" ? 1 : -1;
+          state.clipboardSelection = (state.clipboardSelection + delta + CLIPBOARD_ENTRIES.length) % CLIPBOARD_ENTRIES.length;
+          state.lastEvent = `Clipboard selection ${state.clipboardSelection + 1}`;
+          render();
+          focusAfterRender(`[data-entry-index='${state.clipboardSelection}']`);
+          return;
+        }
+        if (event.key === "Enter" && !typing && !state.shortcutOpen) {
+          event.preventDefault();
+          copyClipboard();
+          return;
+        }
+      }
+
+      if (state.view === "base64" && command && event.key === "Enter") {
+        event.preventDefault();
+        copyBase64();
+        return;
+      }
+
+      if (state.view === "base64" && event.target.closest(".control-group") && ["ArrowLeft", "ArrowRight"].includes(event.key)) {
+        event.preventDefault();
+        const group = event.target.closest(".control-group");
+        const buttons = [...group.querySelectorAll("button")];
+        const index = Math.max(0, buttons.indexOf(document.activeElement));
+        const direction = event.key === "ArrowRight" ? 1 : -1;
+        const next = buttons[(index + direction + buttons.length) % buttons.length];
+        next.focus();
+        next.click();
+        return;
+      }
+
+      if (!typing && !event.target.closest("button") && ["ArrowLeft", "ArrowRight"].includes(event.key)) {
+        event.preventDefault();
+        cycleVariant(event.key === "ArrowRight" ? 1 : -1);
+      }
+    });
+
+    document.addEventListener("pointerdown", (event) => {
+      if (!state.panelOpen) return;
+      if (panelStage.contains(event.target)) return;
+      if (event.target.closest("#labToggle, #labPanel, .variant-switcher, .toast")) return;
+      closePanel(false);
+    });
+
+    document.querySelector("#previousVariant").addEventListener("click", () => cycleVariant(-1));
+    document.querySelector("#nextVariant").addEventListener("click", () => cycleVariant(1));
+
+    labToggle.addEventListener("click", () => {
+      state.labOpen = !state.labOpen;
+      labPanel.hidden = !state.labOpen;
+      labToggle.setAttribute("aria-expanded", String(state.labOpen));
+      requestAnimationFrame(() => labPanel.classList.toggle("is-open", state.labOpen));
+      state.lastEvent = state.labOpen ? "Prototype lab opened" : "Prototype lab closed";
+      syncInstrumentation();
+    });
+
+    labPanel.addEventListener("click", (event) => {
+      const button = event.target.closest("button");
+      if (!button) return;
+      if (button.dataset.scenario) setClipboardScenario(button.dataset.scenario);
+      else if (button.dataset.base64Preset) setBase64Preset(button.dataset.base64Preset);
+      else if (button.dataset.motion) setMotion(button.dataset.motion);
+      else if (button.dataset.action === "open-shortcuts") {
+        if (!state.panelOpen) summonPanel();
+        setTimeout(() => openShortcuts(panelContent.querySelector("[data-open-shortcuts]")), 30);
+      } else if (button.dataset.action === "close") {
+        closePanel(true);
+      } else if (button.dataset.action === "summon") {
+        summonPanel();
+      }
+      syncInstrumentation();
+    });
+
+    const initialMotion = state.motion;
+    if (!["150", "200", "250", "off"].includes(initialMotion)) state.motion = "200";
+    setMotion(initialMotion);
+    setVariant(state.variant, false);
+    summonPanel();
+  </script>
+</body>
+</html>
