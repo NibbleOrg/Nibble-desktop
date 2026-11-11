@@ -224,30 +224,6 @@
 
     .va-rail-spacer { flex: 1; }
 
-    .va-quick {
-      display: grid;
-      gap: 5px;
-      place-items: center;
-      width: 54px;
-      padding: 8px 3px 7px;
-      border: 1px solid rgba(255, 255, 255, .07);
-      border-radius: 10px;
-      color: #979b91;
-      background: rgba(255, 255, 255, .025);
-      font-size: 9px;
-    }
-
-    .va-quick:hover {
-      color: #edece4;
-      border-color: rgba(255, 255, 255, .13);
-      background: rgba(255, 255, 255, .05);
-    }
-
-    .va-quick kbd {
-      color: #656a63;
-      font: inherit;
-    }
-
     .va-main {
       display: flex;
       flex: 1;
@@ -657,41 +633,6 @@
 
     .vb-sidebar-spacer { flex: 1; }
 
-    .vb-side-note {
-      padding: 14px 12px 13px;
-      border: 1px solid rgba(255, 255, 255, .065);
-      border-radius: 10px;
-      background: rgba(255, 255, 255, .018);
-    }
-
-    .vb-side-note span {
-      display: block;
-      margin-bottom: 7px;
-      color: #565b54;
-      font-size: 8px;
-      font-weight: 700;
-      letter-spacing: .14em;
-      text-transform: uppercase;
-    }
-
-    .vb-side-note strong {
-      display: block;
-      color: #b8b7ae;
-      font-family: Georgia, "Songti SC", serif;
-      font-size: 12px;
-      font-weight: 500;
-      line-height: 1.5;
-    }
-
-    .vb-side-note button {
-      margin-top: 11px;
-      padding: 0;
-      border: 0;
-      color: #cf8a6e;
-      background: transparent;
-      font-size: 9px;
-    }
-
     .vb-main {
       display: flex;
       flex: 1;
@@ -720,28 +661,6 @@
     }
 
     .vb-topbar-spacer { flex: 1; }
-
-    .vb-quick-button {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      padding: 7px 10px;
-      border: 1px solid rgba(255, 255, 255, .075);
-      border-radius: 8px;
-      color: #777b73;
-      background: transparent;
-      font-size: 9px;
-    }
-
-    .vb-quick-button:hover {
-      color: #dedbd2;
-      border-color: rgba(255, 255, 255, .14);
-    }
-
-    .vb-quick-button kbd {
-      color: #a6a79f;
-      font: inherit;
-    }
 
     .vb-home {
       display: flex;
@@ -925,25 +844,6 @@
     }
 
     .vc-topbar-spacer { flex: 1; }
-
-    .vc-quick-button {
-      display: flex;
-      gap: 7px;
-      align-items: center;
-      height: 30px;
-      padding: 0 10px;
-      border: 1px solid rgba(225, 128, 85, .19);
-      border-radius: 7px;
-      color: #c9876b;
-      background: rgba(225, 128, 85, .055);
-      font-size: 9px;
-    }
-
-    .vc-quick-button:hover {
-      color: #f0b295;
-      border-color: rgba(225, 128, 85, .34);
-      background: rgba(225, 128, 85, .09);
-    }
 
     .vc-body {
       display: flex;
@@ -1583,13 +1483,12 @@
     @media (max-width: 720px) {
       .va-rail { flex-basis: 62px; padding-inline: 6px; }
       .va-nav-button.is-active::before { left: -6px; }
-      .va-quick { width: 48px; }
       .va-topbar { padding-inline: 18px; }
       .va-home { padding: 16px; }
       .va-calendar { height: calc(100vh - 126px); min-height: 390px; }
       .vb-sidebar { flex-basis: 64px; align-items: center; padding: 18px 9px; }
       .vb-brand { justify-content: center; width: 100%; padding-inline: 0; }
-      .vb-brand-copy, .vb-nav-label, .vb-side-note { display: none; }
+      .vb-brand-copy, .vb-nav-label { display: none; }
       .vb-nav-button { justify-content: center; width: 42px; padding: 0; }
       .vb-nav-button span { display: none; }
       .vb-nav-button.is-active::after { right: -9px; }
@@ -1615,10 +1514,8 @@
       .vc-brand { display: none; }
       .vc-nav-button { padding-inline: 8px; }
       .vc-nav-button span { display: none; }
-      .vc-quick-button span { display: none; }
-      .vc-quick-button { width: 31px; padding: 0; justify-content: center; }
       .vc-rail { display: none; }
-      .va-topbar-meta, .vb-breadcrumb span, .vb-quick-button span { display: none; }
+      .va-topbar-meta, .vb-breadcrumb span { display: none; }
       .va-topbar { padding-inline: 14px; }
       .va-home, .vb-home, .vc-home { padding: 10px 10px 55px; }
       .va-calendar, .vb-calendar, .vc-calendar {
@@ -1661,7 +1558,7 @@
 
   <div class="prototype-lab" id="lab" hidden>
     <h3>Prototype lab</h3>
-    <p>Visual and motion instrumentation. These controls and this badge are not part of the product.</p>
+    <p>Visual and motion instrumentation. Quick Panel is only shown here as a separate-window comparison, never as Workbench content.</p>
 
     <div class="lab-section">
       <label>Motion rhythm</label>
@@ -1675,7 +1572,7 @@
     <div class="lab-section">
       <label>State comparison</label>
       <button class="lab-action" data-toggle-empty>空月说明</button>
-      <button class="lab-action" data-toggle-quick>白色 Quick Panel 浮层</button>
+      <button class="lab-action" data-toggle-quick>独立窗口：Quick Panel</button>
       <button class="lab-action" data-toggle-reduced>Reduced motion</button>
     </div>
   </div>
@@ -1759,12 +1656,6 @@
       return `${make("home", "首页", icons.home)}${make("settings", "设置", icons.settings)}`;
     }
 
-    function quickTrigger(kind) {
-      if (kind === "va") return `<button class="va-quick nav-button" data-open-quick>${icons.search}<span>Quick</span><kbd>⌥Space</kbd></button>`;
-      if (kind === "vb") return `<button class="vb-quick-button nav-button" data-open-quick>${icons.search}<span>Quick Panel</span><kbd>⌥Space</kbd></button>`;
-      return `<button class="vc-quick-button nav-button" data-open-quick>${icons.search}<span>Quick Panel</span></button>`;
-    }
-
     function settingsMarkup(kind) {
       return `
         <div class="settings-view" data-route-view>
@@ -1831,7 +1722,6 @@
               <div class="va-logo" aria-label="Nibble">N</div>
               <nav class="va-nav">${navButtons("va-nav")}</nav>
               <div class="va-rail-spacer"></div>
-              ${quickTrigger("va")}
             </aside>
             <section class="va-main">
               <header class="va-topbar">
@@ -1860,17 +1750,11 @@
                 ${navButtons("vb-nav")}
               </nav>
               <div class="vb-sidebar-spacer"></div>
-              <div class="vb-side-note">
-                <span>Immediate use</span>
-                <strong>Quick Panel 浮在 Workbench 之外，保持独立的白系材质。</strong>
-                <button data-open-quick>打开参考浮层 ↗</button>
-              </div>
             </aside>
             <section class="vb-main">
               <header class="vb-topbar">
                 <div class="vb-breadcrumb"><span>Nibble / </span><strong>${state.route === "home" ? "首页" : "设置"}</strong></div>
                 <span class="vb-topbar-spacer"></span>
-                ${quickTrigger("vb")}
               </header>
               ${state.route === "home" ? homeMarkup("vb") : `<div class="vb-main" data-route-view>${settingsMarkup("vb")}</div>`}
             </section>
@@ -1883,13 +1767,11 @@
             <div class="vc-brand"><span class="vc-brand-mark">N</span><strong>Nibble</strong></div>
             <nav class="vc-nav">${navButtons("vc-nav")}</nav>
             <span class="vc-topbar-spacer"></span>
-            ${quickTrigger("vc")}
           </header>
           <div class="vc-body">
             <aside class="vc-rail">
               <button class="vc-rail-chip nav-button ${state.route === "home" ? "is-accent" : ""}" data-route="home" aria-label="首页">${icons.calendar}</button>
               <button class="vc-rail-chip nav-button ${state.route === "settings" ? "is-accent" : ""}" data-route="settings" aria-label="设置">${icons.settings}</button>
-              <button class="vc-rail-chip nav-button" data-open-quick aria-label="Quick Panel">${icons.search}</button>
               <div class="vc-rail-spacer"></div>
               <span class="vc-rail-date">LOCAL · MONTH</span>
             </aside>
@@ -2072,10 +1954,6 @@
       }
       if (event.target.closest("[data-month-today]")) {
         returnToday();
-        return;
-      }
-      if (event.target.closest("[data-open-quick]")) {
-        openQuick();
         return;
       }
       if (event.target.closest("[data-close-quick]")) {

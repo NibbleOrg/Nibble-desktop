@@ -23,4 +23,6 @@ The Prototype lab exposes:
 - The empty-month explanation state.
 - The accepted white Quick Panel positioned over each dark Workbench variant.
 
+Quick Panel appears only through that Prototype lab comparison. It is a separate top-level surface, not Workbench content or Workbench navigation.
+
 The month grid uses the browser locale for month/weekday labels and week start. Previous/next month and Return to Today use real local dates.
