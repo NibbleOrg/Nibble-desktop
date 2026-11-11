@@ -17,13 +17,29 @@ One captured plain-text value in Clipboard History.
 _Avoid_: clip, clipboard record, history item
 
 **Calendar**:
-The Workbench month view used to navigate dates.
+The Workbench month view used to browse dates and any imported Calendar Events.
 _Avoid_: schedule, calendar widget, date dashboard
 
 **Calendar Event**:
-A future dated item represented by Calendar.
+A dated item represented by Calendar.
 _Avoid_: appointment, activity, calendar item
 
 **Calendar Provider**:
-A source from which Calendar may import events.
+A platform integration that supplies one or more Calendar Sources.
 _Avoid_: calendar account, cloud sync service
+
+**Calendar Source**:
+One external calendar exposed by a Calendar Provider.
+_Avoid_: provider, calendar account
+
+**Calendar Source Label**:
+The human-readable Calendar Provider and Calendar Source names shown with an event and used for filtering.
+_Avoid_: source identity, duplicate key
+
+**Calendar Import**:
+The one-way reconciliation of Calendar Events from Calendar Sources into Nibble's local projection.
+_Avoid_: calendar sync, export
+
+**External Event Reference**:
+A provider-scoped identity that associates a Calendar Event with an external event occurrence.
+_Avoid_: external ID, calendar UID
