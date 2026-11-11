@@ -5,11 +5,11 @@ Nibble is a local-first personal desktop application with two interaction surfac
 ## Language
 
 **Workbench**:
-The full-feature surface for managing, configuring, inspecting, and composing Nibble capabilities.
+The full-context surface for Nibble capabilities whose complete workflow requires sustained navigation, management, inspection, or substantial space.
 _Avoid_: personal workspace, dashboard, main window
 
 **Quick Panel**:
-The lightweight, summonable surface for finding and using Nibble capabilities with minimal interruption.
+The lightweight, summonable surface for immediately using a capability or a deliberately limited projection of a larger capability with minimal interruption.
 _Avoid_: personal tool interface, uTools interface, launcher, utility page
 
 **Clipboard Entry**:
