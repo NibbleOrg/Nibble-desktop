@@ -845,6 +845,12 @@
 
     .vc-topbar-spacer { flex: 1; }
 
+    .vc-page-context {
+      color: #666b63;
+      font-size: 9px;
+      letter-spacing: .04em;
+    }
+
     .vc-body {
       display: flex;
       flex: 1;
@@ -1512,9 +1518,8 @@
     @media (max-width: 560px) {
       .vc-topbar { gap: 8px; padding-inline: 10px; }
       .vc-brand { display: none; }
-      .vc-nav-button { padding-inline: 8px; }
-      .vc-nav-button span { display: none; }
-      .vc-rail { display: none; }
+      .vc-rail { flex-basis: 50px; padding-inline: 5px; }
+      .vc-rail-chip { width: 36px; }
       .va-topbar-meta, .vb-breadcrumb span { display: none; }
       .va-topbar { padding-inline: 14px; }
       .va-home, .vb-home, .vc-home { padding: 10px 10px 55px; }
@@ -1648,12 +1653,11 @@
     state.reduced = params.get("motion") === "reduce" ||
       (window.matchMedia("(prefers-reduced-motion: reduce)").matches && params.get("motion") !== "full");
 
-    function navButtons(kind) {
-      const make = (route, label, icon) => `
+    function navButton(kind, route, label, icon) {
+      return `
         <button class="${kind}-button nav-button ${state.route === route ? "is-active" : ""}" data-route="${route}" aria-current="${state.route === route ? "page" : "false"}">
           ${icon}<span>${label}</span>
         </button>`;
-      return `${make("home", "首页", icons.home)}${make("settings", "设置", icons.settings)}`;
     }
 
     function settingsMarkup(kind) {
@@ -1720,8 +1724,9 @@
           <div class="workbench va is-launching">
             <aside class="va-rail">
               <div class="va-logo" aria-label="Nibble">N</div>
-              <nav class="va-nav">${navButtons("va-nav")}</nav>
+              <nav class="va-nav">${navButton("va-nav", "home", "首页", icons.home)}</nav>
               <div class="va-rail-spacer"></div>
+              <nav class="va-nav">${navButton("va-nav", "settings", "设置", icons.settings)}</nav>
             </aside>
             <section class="va-main">
               <header class="va-topbar">
@@ -1747,9 +1752,10 @@
               </div>
               <nav class="vb-nav">
                 <div class="vb-nav-label">Workspace</div>
-                ${navButtons("vb-nav")}
+                ${navButton("vb-nav", "home", "首页", icons.home)}
               </nav>
               <div class="vb-sidebar-spacer"></div>
+              <nav class="vb-nav">${navButton("vb-nav", "settings", "设置", icons.settings)}</nav>
             </aside>
             <section class="vb-main">
               <header class="vb-topbar">
@@ -1765,15 +1771,15 @@
         <div class="workbench vc is-launching">
           <header class="vc-topbar">
             <div class="vc-brand"><span class="vc-brand-mark">N</span><strong>Nibble</strong></div>
-            <nav class="vc-nav">${navButtons("vc-nav")}</nav>
+            <span class="vc-page-context">${state.route === "home" ? "首页 / Calendar" : "设置"}</span>
             <span class="vc-topbar-spacer"></span>
           </header>
           <div class="vc-body">
             <aside class="vc-rail">
               <button class="vc-rail-chip nav-button ${state.route === "home" ? "is-accent" : ""}" data-route="home" aria-label="首页">${icons.calendar}</button>
-              <button class="vc-rail-chip nav-button ${state.route === "settings" ? "is-accent" : ""}" data-route="settings" aria-label="设置">${icons.settings}</button>
-              <div class="vc-rail-spacer"></div>
               <span class="vc-rail-date">LOCAL · MONTH</span>
+              <div class="vc-rail-spacer"></div>
+              <button class="vc-rail-chip nav-button ${state.route === "settings" ? "is-accent" : ""}" data-route="settings" aria-label="设置">${icons.settings}</button>
             </aside>
             ${state.route === "home" ? homeMarkup("vc") : `<main class="vc-home"><div data-route-view>${settingsMarkup("vc")}</div></main>`}
           </div>
