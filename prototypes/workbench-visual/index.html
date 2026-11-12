@@ -1152,11 +1152,37 @@
     }
 
     .proto-switcher .current {
-      min-width: 162px;
+      min-width: 142px;
       color: #d9d7cf;
       font-family: "SFMono-Regular", Menlo, monospace;
       font-size: 8px;
       letter-spacing: .02em;
+    }
+
+    .variant-jumps {
+      display: flex;
+      gap: 2px;
+      padding: 2px;
+      border: 1px solid rgba(255, 255, 255, .08);
+      border-radius: 7px;
+      background: rgba(255, 255, 255, .025);
+    }
+
+    .proto-switcher .variant-jump {
+      width: 25px;
+      min-width: 25px;
+      height: 23px;
+      padding: 0;
+      color: #6f746c;
+      font-family: "SFMono-Regular", Menlo, monospace;
+      font-size: 8px;
+    }
+
+    .proto-switcher .variant-jump.is-active {
+      color: #211712;
+      background: #d3835e;
+      font-weight: 700;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .28);
     }
 
     .proto-switcher .lab-toggle {
@@ -1584,6 +1610,11 @@
 
   <div class="proto-switcher" aria-label="Prototype variant switcher">
     <button data-cycle="-1" aria-label="Previous variant">←</button>
+    <div class="variant-jumps" aria-label="Choose prototype variant">
+      <button class="variant-jump" data-set-variant="A" aria-label="Variant A">A</button>
+      <button class="variant-jump" data-set-variant="B" aria-label="Variant B">B</button>
+      <button class="variant-jump" data-set-variant="C" aria-label="Variant C">C</button>
+    </div>
     <button class="current" data-current-variant>A · Ink rail</button>
     <button data-cycle="1" aria-label="Next variant">→</button>
     <button class="lab-toggle" data-toggle-lab>Lab</button>
@@ -1837,6 +1868,9 @@
 
     function updateSwitcher() {
       document.querySelector("[data-current-variant]").textContent = `${state.variant} · ${variants[state.variant]}`;
+      document.querySelectorAll("[data-set-variant]").forEach(button => {
+        button.classList.toggle("is-active", button.dataset.setVariant === state.variant);
+      });
       document.body.dataset.variant = state.variant;
       document.body.dataset.motion = state.reduced ? "reduce" : String(state.motion);
       document.querySelectorAll("[data-motion-value]").forEach(button => {
@@ -1968,6 +2002,10 @@
       }
       if (event.target.closest("[data-cycle]")) {
         cycleVariant(Number(event.target.closest("[data-cycle]").dataset.cycle));
+        return;
+      }
+      if (event.target.closest("[data-set-variant]")) {
+        setVariant(event.target.closest("[data-set-variant]").dataset.setVariant);
         return;
       }
       if (event.target.closest("[data-toggle-lab]")) {
