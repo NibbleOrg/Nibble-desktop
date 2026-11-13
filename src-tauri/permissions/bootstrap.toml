@@ -1,0 +1,4 @@
+[[permission]]
+identifier = "allow-bootstrap-info"
+description = "Read content-free bootstrap metadata."
+commands.allow = ["bootstrap_info"]

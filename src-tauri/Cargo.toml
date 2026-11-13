@@ -1,0 +1,20 @@
+[package]
+name = "nibble-desktop"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.99"
+default-run = "nibble-desktop"
+
+[lib]
+name = "nibble_desktop"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+specta = { version = "=2.0.0-rc.28", features = ["derive", "function"] }
+specta-typescript = "=0.0.15"
+tauri-specta = { version = "=2.0.0-rc.29", features = ["typescript"] }

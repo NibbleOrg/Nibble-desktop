@@ -27,7 +27,7 @@ Last verified: 2026-11-13 — v1 规划契约；生产实现与实机行为未�
 
 ## 尚待实施与决策
 
-- 生产工程、模块命令、格式/lint/类型/测试/build 及 CI 尚未建立。
+- 最小工程、检查命令及 macOS CI 配置已建立，验证证据见[初始化](engineering/bootstrap.md)；完整业务与平台验收尚未完成。
 - issue/PR 模板、GitHub main ruleset/branch protection 尚未启用；代码和 CI 首次存在时建立治理 issue，要求 PR 和适用 CI，禁止直接推送。不声称正式 review 已被强制。
 - macOS 真实权限、焦点、快捷键、窗口材质、功耗、安装与更新恢复均 not verified。
 - 应用图标、实际本地数据路径、用户卸载步骤和真实发布下载入口待实施。

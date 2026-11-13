@@ -1,0 +1,48 @@
+{
+  "name": "nibble-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.18.0",
+  "engines": {
+    "node": "26.13.0"
+  },
+  "scripts": {
+    "dev": "tauri dev",
+    "dev:web": "vite --host 127.0.0.1 --port 1420 --strictPort",
+    "build:web": "tsc --noEmit && vite build",
+    "build": "tauri build --no-bundle",
+    "format": "prettier --write package.json tsconfig.json vite.config.ts eslint.config.js index.html src scripts src-tauri/*.json src-tauri/capabilities/*.json .github/workflows/*.yml && cargo fmt --manifest-path src-tauri/Cargo.toml",
+    "format:check": "prettier --check package.json tsconfig.json vite.config.ts eslint.config.js index.html src scripts src-tauri/*.json src-tauri/capabilities/*.json .github/workflows/*.yml && cargo fmt --manifest-path src-tauri/Cargo.toml --check",
+    "lint": "eslint . && cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets --locked -- -D warnings",
+    "typecheck": "tsc --noEmit && pnpm bindings:check",
+    "test": "vitest run && cargo test --manifest-path src-tauri/Cargo.toml --locked",
+    "bindings:generate": "cargo run --manifest-path src-tauri/Cargo.toml --locked --bin export-bindings",
+    "bindings:check": "node scripts/check-bindings.mjs"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.12.4",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@tauri-apps/cli": "^2.12.4",
+    "@testing-library/dom": "10.4.2",
+    "@testing-library/jest-dom": "7.0.1",
+    "@testing-library/react": "16.3.3",
+    "@types/node": "26.6.6",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.3.0",
+    "eslint": "10.14.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "eslint-plugin-react-refresh": "0.5.7",
+    "jsdom": "31.0.0",
+    "prettier": "3.10.1",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "8.72.2",
+    "vite": "8.3.8",
+    "vitest": "5.1.0"
+  }
+}
