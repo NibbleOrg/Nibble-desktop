@@ -67,3 +67,13 @@ Rust 直接依赖：tauri 与 tauri-build 为 MIT OR Apache-2.0，serde 为 MIT 
 ## 初始依赖审计记录
 
 pnpm audit 报告一项开发依赖 minimatch 中等级 glob 放大 DoS（GHSA-g3hv-75wg-m249）；当前 10.2.6，修复版要求 >=11.0.1。它用于本仓库受控 lint 路径，不进入应用运行时。未擅自强制跨 major override；此已知风险需初始化 PR 维护者审阅，后续通过工具链更新消除。Rust metadata 全部传递包有许可声明；存在 MPL-2.0 和多许可选项，后续公开分发需汇总通知义务，不能宣称已完成法律合规审查。Rust 漏洞库扫描未执行。
+
+## 本次执行证据
+
+本地及独立干净目录（无 node_modules、dist、target）均完成冻结安装、format:check、lint、typecheck/绑定漂移、3 项前端测试、1 项 Rust 测试及 Tauri release 构建。pnpm peers check 无冲突。浏览器核对两个入口的未实现提示，以下仅为浏览器渲染，不证明原生窗口行为：
+
+![初始化 Workbench 浏览器入口](evidence/bootstrap-web.png)
+
+远端 CI 结果以 PR checks 为准；最小原生启动与完整产品验收分别记录，不混用。
+
+本地 release 可执行文件启动后保持运行，但原生 UI 检查工具无法绑定未打包可执行文件；因此没有将进程存活计作原生窗口或 IPC 实机验收通过。原生日志出现 IMK mach-port 诊断，未见 Rust 启动失败；具体原生体验仍由风险验证任务承接。
