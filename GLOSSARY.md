@@ -4,6 +4,10 @@ Nibble is a local-first personal desktop application with two interaction surfac
 
 ## Language
 
+**Capability**:
+An ability Nibble provides, defined independently of the surfaces that expose it.
+_Avoid_: plugin, page
+
 **Workbench**:
 The full-context surface for Nibble capabilities whose complete workflow requires sustained navigation, management, inspection, or substantial space.
 _Avoid_: personal workspace, dashboard, main window
