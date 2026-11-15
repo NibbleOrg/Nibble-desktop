@@ -1,0 +1,7 @@
+:root {
+  font-family: system-ui, sans-serif;
+  --text: #eee9e2;
+  --surface: #22211f;
+  background: #151514;
+  color-scheme: dark;
+}

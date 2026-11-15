@@ -154,3 +154,6 @@ vite.config.ts.timestamp-*
 # Ide Files
 .idea
 .vscode
+# Rust / Tauri generated output
+src-tauri/target/
+src-tauri/gen/

@@ -1,0 +1,6 @@
+{
+  "identifier": "bootstrap",
+  "description": "Content-free metadata only for the two local surfaces.",
+  "windows": ["workbench", "quick-panel"],
+  "permissions": ["allow-bootstrap-info"]
+}

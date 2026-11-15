@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-bootstrap-info"
+description = "Enables the bootstrap_info command without any pre-configured scope."
+commands.allow = ["bootstrap_info"]
+
+[[permission]]
+identifier = "deny-bootstrap-info"
+description = "Denies the bootstrap_info command without any pre-configured scope."
+commands.deny = ["bootstrap_info"]

@@ -13,6 +13,7 @@ Last verified: 2026-11-13 — v1 规划契约；生产实现与实机行为未�
 | [用户指南](product/user-guide.md) | 使用入口与故障指引 |
 | [隐私与数据](product/privacy.md) | 捕获、保留、删除与恢复 |
 | [Calendar 扩展](engineering/calendar-future.md) | 未来领域契约，非 v1 功能 |
+| [初始化与命令](engineering/bootstrap.md) | 工具版本、依赖与实际验证范围 |
 | [架构](engineering/architecture.md) | 模块、状态、IPC 和测试边界 |
 | [项目说明](business/project.md) | 用户、价值、维护及路线目标 |
 | [发布运维](operations/release.md) | 支持范围、产物、签名与门禁 |
