@@ -26,9 +26,9 @@ pnpm exec tauri bundle --bundles app --config '{"bundle":{"active":true}}'
 
 macOS 将首个应用菜单显示为 **Nibble Local**；其中包含以下探测操作。
 
-1. `⌘1` 安排三秒后打开；立即切到目标应用，并把指针放在目标显示器上。延迟结束时记录当时前台应用，然后将探测窗口放在指针显示器 work area 顶部居中。打开期间再执行不会覆盖原应用；后一个延迟请求替代前一个，关闭会取消待执行请求。
+1. `⌘1` 安排三秒后打开；立即切到目标应用，并把指针放在目标显示器上。延迟结束时记录当时前台应用，然后将探测窗口放在指针显示器 work area 顶部居中。打开期间再执行不会覆盖原应用；等待期间重复按键保留第一次的三秒截止时间，不重新计时；关闭会取消待执行请求。`⌘1` 是本应用菜单快捷键，不是全局快捷键：必须先激活 Workbench，再按一次并等待三秒。
 2. `⌘2` / `⌘3` / `⌘4` 请求 650×264 / 650×480 / 650×620 逻辑尺寸，分别代表搜索/历史/Base64 的尺寸负载，不执行工具业务。按目标屏幕比例转换为物理像素；优先保留左上角，在工作区放不下时限制尺寸并调整位置。聚焦首个输入。
-3. `⌘W` / `Esc` 隐藏并仅向最初应用发送一次激活请求。原应用已退出时只隐藏，不激活替代应用。探测对照项 `⌘⇧W` 隐藏但不恢复；外部点击失焦也隐藏并清除恢复目标。
+3. `⌘W` / `Esc` 隐藏并仅向最初应用发送一次激活请求。原应用是 Nibble 自身时显式聚焦 Workbench；原应用已退出时只隐藏，不激活替代应用。探测对照项 `⌘⇧W` 隐藏但不恢复；外部点击失焦也隐藏并清除恢复目标。
 4. 打开期间每秒检查窗口是否完整包含在任一现有显示器 work area 内；超出时重新约束到可用显示器。小屏通过滚动到达底部输入，重新唤起按指针位置定位。
 5. 应用菜单 Quit / `⌘Q` 退出探测。普通骨架窗口与正式生命周期不在本探测中实现。
 
@@ -83,8 +83,22 @@ Reduce motion 状态：
 
 先建立三条几何测试，`cargo test --lib --offline` 因缺少 `fit` 实现出现三条 E0425，随后实现并通过。覆盖负坐标 Retina 工作区顶部保持、断屏后小工作区约束、指针屏顶部居中。它们不证明真实窗口时序。现有元信息与前端合同测试继续通过。
 
-本地已运行：`pnpm format:check`、`pnpm lint`、`pnpm typecheck`（含生成漂移）、`pnpm test`（3 前端 + 4 Rust）、`cargo test --manifest-path src-tauri/Cargo.toml --features native-probe --offline --lib`、探测 feature 的全 targets clippy、`pnpm build:probe`。最终改动后又完成格式检查、ESLint、探测 feature clippy/test 及探测构建；默认构建亦通过。远端 CI not verified，不能用新增 workflow 步骤代替运行结果。
+本地已运行：`pnpm format:check`、`pnpm lint`、`pnpm typecheck`（含生成漂移）、`pnpm test`（3 前端 + 4 Rust）、`cargo test --manifest-path src-tauri/Cargo.toml --features native-probe --offline --lib`、探测 feature 的全 targets clippy、`pnpm build:probe`。最终改动后又完成格式检查、ESLint、探测 feature clippy/test 及探测构建；默认构建亦通过。初始实现的[远端 macOS CI 已通过](https://github.com/NibbleOrg/Nibble-desktop/actions/runs/43724543159/job/132843531697)（合并 PR 37）；后续修复的远端结果须独立核对。
 
 新增可选直接依赖为 crates.io 的 `objc2 = 0.6.5`（MIT）、`objc2-app-kit = 0.3.2`（Zlib OR Apache-2.0 OR MIT）。二者版本此前已在 Cargo.lock 的 Tauri 传递依赖中，仅提升为探测 feature 的显式依赖；关闭 app-kit default features，只选择使用的绑定，没有增加解析包。原生指针借用隔离在一个有安全说明的同步主线程调用。没有声称完成漏洞或公开分发许可审计。
 
 CI 增加探测 feature clippy/test/build；这些仍不能验证实机。回退可删除 feature、可选依赖、两个 Rust 探测文件、独立 React 探测页、脚本和 CI 对应步骤，并恢复默认入口；无数据格式或用户设置迁移。维护者需审阅窗口/AppKit 候选方案，正式实现另行抽取经过实测的约束，不直接复用整个探测模块。
+
+## 验收期间发现的唤起缺陷
+
+维护者报告：从 Workbench 按 `⌘1` 常需两次以上并等待较久；Esc 后难以重新唤起。因此不能依据先前有限 smoke 宣称此场景已通过。
+
+修复前，原生 UI 回放曾连续两次观察到单次 `⌘1` 后等待 3.5 秒仍显示 Workbench；临时边界日志还记录到获焦后失焦并关闭。该观察本身不足以判断所有失焦的来源，未将它当成所有平台均相同的根因。
+
+确定性复现提取到实际菜单及原生回调共用的 `probe_schedule`：重复请求重设 token 会使第一次截止失效；隐藏后的旧失焦回调也会无条件调用 close，取消新请求。对应回归测试先失败，再通过。修复使等待中的重试不延后截止，并仅在收到失焦事件时窗口仍可见才处理外部关闭；单测保留可见窗口失焦时调用 close 的路径。关闭前先取走恢复目标，避免 hide 产生的事件抢先清除它；返回 Nibble 自身时明确选择 Workbench 键窗口。
+
+复现命令：`cargo test --manifest-path src-tauri/Cargo.toml --lib probe_schedule --offline`。覆盖重试不延后、旧截止不取消新请求、Esc 的隐藏事件不取消重开、实际外部失焦仍关闭。原生失焦事件用于关闭判断，不用可能滞后的焦点查询结果覆盖事件。它们不替代 Apple Silicon 原生重测。临时 `[DEBUG-28-open]` 日志及临时文件写入代码已移除；保留内容无关的“已安排/保留首次截止”提示，便于验收时区分未收到按键和仍在等待。
+
+最终候选的 Intel 原生 UI 回放观察到：单次 `⌘1` 等待 3.5 秒后出现探测窗口；Esc 后立即重复 `⌘1`，同样能重新出现；首个输入获焦。外部点击后 AX 树仍报告探测窗口，当前未能据此可靠核对真实显隐，故外部点击的原生结果仍 not verified，不能引用单测作为通过证据。Apple Silicon 上的原始报告需维护者复测；无短录屏，不提升整体原生验收状态。
+
+本次修复检查通过：format:check、lint、typecheck/绑定漂移、3 前端 + 8 Rust 测试、探测 feature clippy/test、默认构建及探测构建。新增 `objc2-app-kit/libc` feature 用于已有 `processIdentifier` 绑定；Cargo.lock 仅增加至既有 libc 包的依赖边，无新增版本或包。依赖许可与回退沿用上文；修复可回退本次提交，无持久数据变更。
