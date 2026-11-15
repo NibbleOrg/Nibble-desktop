@@ -2,27 +2,29 @@
 
 Status: Current
 Owner: 项目维护者
-Last verified: 2026-11-16 — GitHub 只读核查；保护配置待维护者批准及启用
+Last verified: 2026-11-16 — main 规则集已启用，并回读核对生效范围及当前身份不可绕过
 
 对应[建立协作模板与 main 保护](https://github.com/NibbleOrg/Nibble-desktop/issues/29)。审批规范见[工程工作流](../agents/workflow.md)，验收规范见[质量](../agents/quality.md)。本页区分配置文件、远端启用及验证结果。
 
 ## 当前状态
 
-2026-11-16 使用当前 gh 身份只读查询 `NibbleOrg/Nibble-desktop`：
+2026-11-16 完成维护者批准核对、创建及回读，目标为 `NibbleOrg/Nibble-desktop`：
 
 | 项目 | 实际结果 |
 | --- | --- |
 | 仓库 | public；默认分支 main |
 | 当前身份 | API 返回 admin/maintain/push/triage/pull 均为 true |
-| 传统 branch protection | GET branches/main/protection 返回 404 / Branch not protected |
-| 仓库及上级 rulesets | GET rulesets?includes_parents=true 返回空数组 |
-| 已成功的实际检查 | commit b21ffcd3d5e912d04c38011e928aa472de9ed1fd 的 check-run 名为 macos，conclusion=success |
+| 传统 branch protection | 启用前返回 404；本次采用 ruleset，不使用传统保护 |
+| 生效 ruleset | main-pr-checks，ID 27338759，enforcement=active，仅 main，空 bypass |
+| 已成功的实际检查 | 合并提交 243adc62b9b357f5c05e349957174de245489f39 的 check-run 名为 macos，conclusion=success |
 | 检查来源 | github-actions；App ID 15368 |
-| 本分支交付 | 工作/bug issue forms、PR 模板、候选 main ruleset JSON |
-| 远端模板展示 | not verified；待模板合入默认分支后核对 GitHub 新建 issue/PR 界面 |
-| 远端保护启用 | not verified；当前没有执行创建或更新 |
+| 已合并交付 | 工作/bug issue forms、PR 模板、main ruleset JSON；PR 40 已合并且 CI 成功 |
+| 模板默认分支内容 | gh API 已确认两类表单、config 及 PR 模板存在；已解析内容与标签 |
+| 浏览器展示 | not verified；独立浏览器入口要求登录，未创建测试议题或 PR |
+| 远端保护启用 | main effective-rules 返回四类规则，source ruleset_id 均为 27338759 |
+| 当前身份绕过能力 | API 返回 current_user_can_bypass=never |
 
-main 当前仍未受保护，不能将本分支 JSON 或已有 CI 当作保护已生效。当前身份具有管理权限，不等于维护者已批准本次治理变更。
+main 现已受规则集保护。启用依据是维护者本人在 [PR 40 的批准评论](https://github.com/NibbleOrg/Nibble-desktop/pull/40#issuecomment-6903104159)明确批准提交 `e0c1d5d4b039bcd4997fcabb334c2a9ad3c54f76`；启用前核对载荷与该提交一致，Agent 没有代写批准。此前的空规则集核查保留为启用前事实，不能再表示当前状态。
 
 ## 模板入口
 
@@ -33,7 +35,7 @@ main 当前仍未受保护，不能将本分支 JSON 或已有 CI 当作保护�
 
 模板不代表人类批准，也不自动关闭普通实施 issue。未完成验收保留 draft，未运行写 not verified。字段完整性仍需分流和评审；这些模板不是运行时或安全边界。
 
-## 候选保护配置
+## 已启用的保护配置
 
 `.github/rulesets/main.json` 是可审阅的 REST 创建载荷；GitHub 不会因该文件被合并而自动安装规则。它采用 active enforcement、只匹配 `refs/heads/main`，没有排除项或绕过身份：
 
@@ -42,13 +44,13 @@ main 当前仍未受保护，不能将本分支 JSON 或已有 CI 当作保护�
 - 合并须解决 review conversations。共享 GitHub 身份期间 required approvals 为 0，不强制独立 review、CODEOWNERS 或最后一次 push 的独立批准。人类提交级风险审批仍按工作流由维护者本人记录；规则集不验证该评论的真实性。
 - 没有配置 admin、组织管理员、团队、用户或 App 的 bypass。具有仓库管理权限的身份仍能修改保护本身，此治理权限不等于获准绕过工作流。
 
-字段依据 GitHub [repository rules REST 文档](https://docs.github.com/en/rest/repos/rules?apiVersion=2022-11-28)。`integration_id` 限定检查来源，strict policy 要求与最新基线一起测试。最终服务端接受与执行情况须在启用后回读，当前 not verified。
+字段依据 GitHub [repository rules REST 文档](https://docs.github.com/en/rest/repos/rules?apiVersion=2022-11-28)。`integration_id` 限定检查来源，strict policy 要求与最新基线一起测试。本次已在创建后回读并核对服务端接受结果；后续更新仍须独立核对。
 
-## 启用与完成条件
+## 后续更新与核对流程
 
 1. 本任务 PR 的适用检查通过；维护者按工作流亲自记录绑定最终完整 SHA 的治理批准。Agent 引用证据，不代写批准。若有新提交，重新核对批准。
 2. 启用前重新读取 main protection、含上级的 rulesets 及实际成功 check-run；发现新规则、检查改名或来源变化时，先更新审阅配置，避免覆盖或重复叠加。
-3. 确认本次获批准的载荷后，由获授权的维护者或 Agent 创建规则。下面是已知空规则集情况下的精确目标命令，当前尚未执行：
+3. 确认本次获批准的载荷后，由获授权的维护者或 Agent 创建规则。下面是本次空规则集状态下已执行的创建命令；当前已有规则集，后续更新使用已确认的规则 ID，不能重复创建：
 
    ```sh
    gh api --method POST repos/NibbleOrg/Nibble-desktop/rulesets \
@@ -66,7 +68,9 @@ main 当前仍未受保护，不能将本分支 JSON 或已有 CI 当作保护�
 
 ## 本次验证范围
 
-已核对实际仓库权限、空保护/规则集和成功 check-run 的名称/来源。新增模板/JSON 进入现有 format:check 范围。YAML/JSON 语法、字段唯一性、标签、配置目标与文档链接由本次任务检查；远端表单展示、规则创建和实际门禁尚待上述启用步骤。应用运行时没有变更，生产行为测试不适用于本次模板变更；远端现有 macOS CI 结果以本任务 PR checks 为准。
+已核对仓库权限、维护者批准、成功 check-run 名称/来源、创建返回及 main 生效规则。规则服务端创建时间为 2026-11-16 07:24:14 +08:00，操作者为当前获授权 gh 身份；[规则页面](https://github.com/NibbleOrg/Nibble-desktop/rules/27338759)。[原始规则集回读](evidence/main-ruleset-2026-11-16.json)和[main 生效规则回读](evidence/main-effective-rules-2026-11-16.json)保存 API 结果，核对后确认 active、main 唯一范围、无 bypass、四类规则及 macos/App 15368。没有向 main 试验性推送、强推或删除，因此实际拒绝操作未单独试验；以 GitHub 生效规则回读为配置验收证据。
+
+模板合入后的默认分支文件由 gh API 确认存在，之前的 YAML/JSON、字段、标签与格式检查通过；浏览器可见表单展示仍 not verified，不把文件存在写成 UI 实测。PR 40 的 macOS CI 成功。当前文档补录不改变保护载荷、审批政策或应用行为。
 
 可复现的本地语法/格式入口：
 

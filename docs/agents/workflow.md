@@ -2,7 +2,7 @@
 
 Status: Current
 Owner: 项目维护者
-Last verified: 2026-11-16 — 协作设施只读核查；远端保护待启用
+Last verified: 2026-11-16 — main 规则集已启用并完成 API 回读；详见协作设施
 
 main 不直接推送工作。Agent 分支 `codex/<issue-number>-<short-slug>`，一分支一 issue 一逻辑变更；`research/<slug>` 为不合并的研究分支。
 
