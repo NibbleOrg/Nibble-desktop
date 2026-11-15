@@ -18,7 +18,9 @@
     "typecheck": "tsc --noEmit && pnpm bindings:check",
     "test": "vitest run && cargo test --manifest-path src-tauri/Cargo.toml --locked",
     "bindings:generate": "cargo run --manifest-path src-tauri/Cargo.toml --locked --bin export-bindings",
-    "bindings:check": "node scripts/check-bindings.mjs"
+    "bindings:check": "node scripts/check-bindings.mjs",
+    "dev:probe": "tauri dev --features native-probe",
+    "build:probe": "tauri build --no-bundle --features native-probe"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.12.4",

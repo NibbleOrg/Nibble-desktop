@@ -77,3 +77,8 @@ pnpm audit 报告一项开发依赖 minimatch 中等级 glob 放大 DoS（GHSA-g
 远端 CI 结果以 PR checks 为准；最小原生启动与完整产品验收分别记录，不混用。
 
 本地 release 可执行文件启动后保持运行，但原生 UI 检查工具无法绑定未打包可执行文件；因此没有将进程存活计作原生窗口或 IPC 实机验收通过。原生日志出现 IMK mach-port 诊断，未见 Rust 启动失败；具体原生体验仍由风险验证任务承接。
+
+## 隔离原生风险探测
+
+`pnpm dev:probe` / `pnpm build:probe` 显式启用 `native-probe` Cargo feature。
+操作、依赖、回退和实机证据边界见[原生风险探测](native-window-probe.md)。默认启动仍为初始化双窗口，不启用探测原生代码。

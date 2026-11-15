@@ -1,3 +1,7 @@
+#[cfg(all(feature = "native-probe", target_os = "macos"))]
+mod native_probe;
+#[cfg(any(test, all(feature = "native-probe", target_os = "macos")))]
+mod probe_geometry;
 #[derive(Debug, PartialEq, serde::Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct BootstrapInfo {
@@ -19,7 +23,10 @@ pub fn command_builder() -> tauri_specta::Builder<tauri::Wry> {
 }
 
 pub fn run() {
-    tauri::Builder::default()
+    let builder = tauri::Builder::default();
+    #[cfg(all(feature = "native-probe", target_os = "macos"))]
+    let builder = builder.setup(native_probe::setup);
+    builder
         .invoke_handler(command_builder().invoke_handler())
         .run(tauri::generate_context!())
         .expect("application startup failed");
