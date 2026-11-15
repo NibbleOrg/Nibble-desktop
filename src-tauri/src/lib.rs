@@ -2,6 +2,8 @@
 mod native_probe;
 #[cfg(any(test, all(feature = "native-probe", target_os = "macos")))]
 mod probe_geometry;
+#[cfg(any(test, all(feature = "native-probe", target_os = "macos")))]
+mod probe_schedule;
 #[derive(Debug, PartialEq, serde::Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct BootstrapInfo {

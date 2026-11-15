@@ -1,26 +1,24 @@
 //! Throwaway macOS risk harness, compiled only with `native-probe`.
 //! Native menu actions deliberately add no webview IPC authority.
-use crate::probe_geometry::{fit, Rect};
+use crate::{
+    probe_geometry::{fit, Rect},
+    probe_schedule::{on_focus_lost, PendingOpen},
+};
 use objc2::rc::Retained;
 use objc2_app_kit::{
     NSApplicationActivationOptions, NSRunningApplication, NSWindow, NSWindowCollectionBehavior,
     NSWorkspace,
 };
-use std::{
-    cell::RefCell,
-    sync::atomic::{AtomicU64, Ordering},
-    time::Duration,
-};
+use std::{cell::RefCell, time::Duration};
 use tauri::{
     menu::{Menu, MenuItem, PredefinedMenuItem, Submenu},
     window::{Effect, EffectState, EffectsBuilder},
     Manager, PhysicalPosition, PhysicalSize, WebviewUrl, WebviewWindow, WebviewWindowBuilder,
 };
 
-static OPEN_REQUEST: AtomicU64 = AtomicU64::new(0);
-
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 thread_local! {
+    static OPEN_REQUEST: RefCell<PendingOpen> = RefCell::new(PendingOpen::default());
     // Only accessed by the main-thread setup, menu and dispatched closures.
     static ORIGINAL: RefCell<Option<Retained<NSRunningApplication>>> = const { RefCell::new(None) };
 }
@@ -86,19 +84,27 @@ fn open(app: &tauri::AppHandle) -> Result<()> {
 }
 
 fn close(app: &tauri::AppHandle, restore: bool) -> Result<()> {
-    OPEN_REQUEST.fetch_add(1, Ordering::SeqCst);
+    OPEN_REQUEST.with(|pending| pending.borrow_mut().cancel());
+    // Take the target before hiding: hide generates its own focus-loss event.
+    let original = ORIGINAL.with(|slot| slot.borrow_mut().take());
     panel(app)?.hide()?;
-    ORIGINAL.with(|slot| {
-        if let Some(original) = slot.borrow_mut().take() {
-            if restore && !original.isTerminated() {
-                // One request only; deprecated API is intentionally being evaluated,
-                // not treated as a guarantee that macOS grants activation.
+    if restore {
+        if let Some(original) = original.filter(|original| !original.isTerminated()) {
+            if original.processIdentifier() == std::process::id() as i32 {
+                // Activating an already-active application alone does not select
+                // Workbench as the key window after the probe is hidden.
+                app.get_webview_window("workbench")
+                    .ok_or("Workbench unavailable for focus restoration")?
+                    .set_focus()?;
+                eprintln!("probe closed; Workbench focus requested");
+            } else {
                 #[allow(deprecated)]
-                let accepted = original.activateWithOptions(NSApplicationActivationOptions::ActivateIgnoringOtherApps);
+                let accepted = original
+                    .activateWithOptions(NSApplicationActivationOptions::ActivateIgnoringOtherApps);
                 eprintln!("probe focus activation request accepted={accepted}; visually verify actual focus");
             }
         }
-    });
+    }
     Ok(())
 }
 
@@ -184,13 +190,18 @@ pub fn setup(app: &mut tauri::App) -> Result<()> {
     app.on_menu_event(|app, event| {
         match event.id().as_ref() {
             "open" => {
-                let request = OPEN_REQUEST.fetch_add(1, Ordering::SeqCst) + 1;
+                let Some(request) = OPEN_REQUEST.with(|pending| pending.borrow_mut().request())
+                else {
+                    eprintln!("probe open already scheduled; keeping the first deadline");
+                    return;
+                };
+                eprintln!("probe open scheduled in 3 seconds");
                 let app = app.clone();
                 std::thread::spawn(move || {
                     std::thread::sleep(Duration::from_secs(3));
                     let handle = app.clone();
                     if let Err(error) = app.run_on_main_thread(move || {
-                        if OPEN_REQUEST.load(Ordering::SeqCst) == request {
+                        if OPEN_REQUEST.with(|pending| pending.borrow_mut().complete(request)) {
                             report(open(&handle));
                         }
                     }) {
@@ -218,7 +229,13 @@ pub fn setup(app: &mut tauri::App) -> Result<()> {
     let handle = app.handle().clone();
     window.on_window_event(move |event| {
         if let tauri::WindowEvent::Focused(false) = event {
-            report(close(&handle, false));
+            report(on_focus_lost(
+                || {
+                    let window = panel(&handle)?;
+                    Ok(window.is_visible()?)
+                },
+                || close(&handle, false),
+            ));
         }
     });
     // Re-check live work areas while visible, including unplug/reconfiguration.
