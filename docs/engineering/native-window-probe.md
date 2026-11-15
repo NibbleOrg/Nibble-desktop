@@ -2,9 +2,30 @@
 
 Status: Current
 Owner: 项目维护者
-Last verified: 2026-11-15 — Intel macOS 有限启动观察；完整原生验收 not verified
+Last verified: 2026-11-16 — 先行探测收尾与维护者反馈核对；正式窗口整体验收仍 not verified
 
 对应[验证原生窗口关键风险](https://github.com/NibbleOrg/Nibble-desktop/issues/28)，验收依据[确定原生窗口体验与阶段验收](https://github.com/NibbleOrg/Nibble-desktop/issues/21#issuecomment-6854118028)。这是可复现的临时风险探测，不能作为完整窗口服务或通过验收的替代品。
+
+## 先行探测收尾与交接
+
+维护者要求本任务先行收尾，并明确允许材质在正式 UI 加入后再优化。本票结束的是隔离探测、已发现缺陷修复与后续约束交接；它不替代正式窗口服务和最终整体验收。以下未验证项继续由承接任务负责，不因此填成 passed。
+
+| 项目 | 当前事实与证据 |
+| --- | --- |
+| 可复现探测 | [原生探测实现](https://github.com/NibbleOrg/Nibble-desktop/pull/37)已合并为 d62a557b823b187beffa3dd023d5022e8ff3e269，macOS CI 成功；保留显式 native-probe feature |
+| 唤起/重开缺陷 | [重试与 Esc 修复](https://github.com/NibbleOrg/Nibble-desktop/pull/38)已合并为 b21ffcd3d5e912d04c38011e928aa472de9ed1fd，macOS CI 成功；维护者复测回复“可以” |
+| 实机反馈 | 维护者说明另有 Apple Silicon Mac 与外接显示器，随后对测试指引反馈“没问题，但背景色目前看起来没有模糊感”；未提供每项运行的 OS/显示器配置输出或录屏，不把综合反馈改写为逐项证据 |
+| 材质对照 | [临时诊断 PR](https://github.com/NibbleOrg/Nibble-desktop/pull/39)的开启/关闭对照反馈“两种没啥区别”；原生层结构检查存在不代表视觉模糊正确。根因未确认，不能归因为尚未加入 UI |
+| 延期决定 | 按维护者“可以后续 UI 加上后再优化”的指示，材质视觉调优转入正式 UI 阶段；最终 Frosted pane 合同保留 |
+| 临时诊断处置 | PR 39 已关闭且未合并，分支 codex/28-probe-material-diagnostics 与提交 257ee7a 保留供回查；其 ⌘5/6/7 对照菜单不在 main 中 |
+
+承接责任：
+
+- [实现应用生命周期与 Quick Panel 窗口协调](https://github.com/NibbleOrg/Nibble-desktop/issues/30)：正式双窗口、托盘/单实例/快捷键生命周期，重新验证焦点、Space/全屏、显示器恢复、顶部缩放和旧回调边界；不能直接将第三个探测窗口当作正式服务。
+- [实现 Quick Panel 工具演示与开发隔离](https://github.com/NibbleOrg/Nibble-desktop/issues/32)：正式 UI 加入后承接材质缺失，使用实际内容、明暗文字/图案背景和系统减少透明度状态验证模糊与可读性，记录调优结果。
+- [完成本地体验整体验收与实施交接](https://github.com/NibbleOrg/Nibble-desktop/issues/34)：收齐最终组合应用的 commit、OS/架构、显示器/Space/全屏配置、步骤、预期/实际、状态及动态证据；本票关闭不解除该任务的完整原生门禁。
+
+每项完整证据不足时继续写 not verified。后续发现平台限制，仍需保留复现证据交维护者决策，不能静默常驻所有 Space、申请额外权限或取消模糊要求。本轮不再反复要求维护者测试临时探测；正式实现后在上述承接任务统一验收。
 
 ## 运行和隔离
 
@@ -44,7 +65,7 @@ macOS 将首个应用菜单显示为 **Nibble Local**；其中包含以下探测
 
 锁定版本源码是此次 API 使用依据。Tauri [2.12.1 发布说明](https://v2.tauri.app/release/%40tauri-apps/api/v2.12.1/)说明透明/全屏不再需要 macOS private API feature；本探测在锁定的 Tauri 2.12.5 下编译通过，没有启用该 feature。此事实不保证材质表现。
 
-## 实机记录与待验证矩阵
+## 探测证据与后续验证矩阵
 
 2026-11-15 有限 smoke 环境：Intel x86_64，macOS 26.7.1（25G241），现有桌面会话。源码身份以本文件引入提交为准；没有将未提交工作树冒充独立 commit 证据。UI 工具绑定本地 `.app`，观察到初始化 Workbench、延迟唤起后的原生探测窗口、首个输入获焦，以及 264/620 两种高度切换；截图像素尺寸分别为 1300×528、1300×1240。关闭后观察到 Workbench。没有形成可提交短录屏，也未核实显示器硬件/Space 配置，故这些只记作有限观察。
 
@@ -55,15 +76,15 @@ macOS 将首个应用菜单显示为 **Nibble Local**；其中包含以下探测
 | 外部点击/原应用退出 | 点击别的应用不抢回；原应用退出后仍可关闭、不激活替代目标 | not verified |
 | 当前 Space | 在不同桌面唤起，仅当前桌面显示，切换桌面不常驻 | not verified |
 | 全屏应用 | 在原生全屏应用中延迟唤起，可见可输入，关闭返回目标 | not verified |
-| 材质 | 在明暗、文字和彩色背景前检查真正背景模糊、透明与可读性 | not verified；只观察到浅色探测窗口 |
-| 多显示器/DPI | 指针切屏，每次唤起对应屏幕且尺寸一致 | not verified；缺物理多屏场景 |
-| 断屏 | 面板位于外屏时拔线，恢复到剩余屏可见范围且可关闭 | not verified；只有几何单测 |
-| 小屏 | 小工作区打开三种尺寸，滚到底部输入，可关闭 | not verified；只有尺寸约束单测 |
+| 材质 | 在明暗、文字和彩色背景前检查真正背景模糊、透明与可读性 | 延期至正式 UI；维护者反馈开启/关闭无明显差异，视觉未通过 |
+| 多显示器/DPI | 指针切屏，每次唤起对应屏幕且尺寸一致 | not verified；维护者综合反馈正常，未附逐项物理多屏证据 |
+| 断屏 | 面板位于外屏时拔线，恢复到剩余屏可见范围且可关闭 | not verified；有几何单测及综合反馈，缺逐项实机记录 |
+| 小屏 | 小工作区打开三种尺寸，滚到底部输入，可关闭 | not verified；有尺寸约束单测及综合反馈，缺逐项实机记录 |
 | 快速关闭重开 | 安排多次延迟打开、关闭，再开；过期请求不重开，输入为空 | not verified |
-| Reduced motion | 开启系统减少动态效果后重复切换；无空间/交叉淡入动画 | not verified；探测本身无动画 |
-| Apple Silicon | 在可用 Apple Silicon macOS 上重复所有场景 | not verified；当前主机是 Intel |
+| Reduced motion | 开启系统减少动态效果后重复切换；无空间/交叉淡入动画 | not verified；综合反馈正常，探测本身无动画，正式动画仍需验证 |
+| Apple Silicon | 在可用 Apple Silicon macOS 上重复所有场景 | not verified；维护者声明有可用 Apple Silicon 环境，未附逐项环境/证据 |
 
-每条实机记录复制以下模板，必须使用实际 commit；动态场景附短录屏后才能把相应项改为通过。缺设备可继续开发，但不能宣布整体原生体验通过。
+下表保留证据缺项，交接后由窗口协调和整体验收任务使用最终实现补齐。维护者的综合正常反馈不自动补齐每条证据。实机记录使用以下模板及实际 commit；动态场景附短录屏后才把相应项改为通过。缺项可继续开发，但不能宣布整体原生体验通过。
 
 ```text
 场景：
@@ -99,6 +120,6 @@ CI 增加探测 feature clippy/test/build；这些仍不能验证实机。回退
 
 复现命令：`cargo test --manifest-path src-tauri/Cargo.toml --lib probe_schedule --offline`。覆盖重试不延后、旧截止不取消新请求、Esc 的隐藏事件不取消重开、实际外部失焦仍关闭。原生失焦事件用于关闭判断，不用可能滞后的焦点查询结果覆盖事件。它们不替代 Apple Silicon 原生重测。临时 `[DEBUG-28-open]` 日志及临时文件写入代码已移除；保留内容无关的“已安排/保留首次截止”提示，便于验收时区分未收到按键和仍在等待。
 
-最终候选的 Intel 原生 UI 回放观察到：单次 `⌘1` 等待 3.5 秒后出现探测窗口；Esc 后立即重复 `⌘1`，同样能重新出现；首个输入获焦。外部点击后 AX 树仍报告探测窗口，当前未能据此可靠核对真实显隐，故外部点击的原生结果仍 not verified，不能引用单测作为通过证据。Apple Silicon 上的原始报告需维护者复测；无短录屏，不提升整体原生验收状态。
+最终候选的 Intel 原生 UI 回放观察到：单次 `⌘1` 等待 3.5 秒后出现探测窗口；Esc 后立即重复 `⌘1`，同样能重新出现；首个输入获焦。外部点击后 AX 树仍报告探测窗口，当前未能据此可靠核对真实显隐，故外部点击的原生结果仍 not verified，不能引用单测作为通过证据。维护者随后复测回复“可以”；缺少逐项 OS/配置与短录屏，保留该反馈而不提升整体原生验收状态。
 
 本次修复检查通过：format:check、lint、typecheck/绑定漂移、3 前端 + 8 Rust 测试、探测 feature clippy/test、默认构建及探测构建。新增 `objc2-app-kit/libc` feature 用于已有 `processIdentifier` 绑定；Cargo.lock 仅增加至既有 libc 包的依赖边，无新增版本或包。依赖许可与回退沿用上文；修复可回退本次提交，无持久数据变更。
