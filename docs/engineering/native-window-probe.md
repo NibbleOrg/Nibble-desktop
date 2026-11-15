@@ -2,7 +2,7 @@
 
 Status: Current
 Owner: 项目维护者
-Last verified: 2026-11-15 — Intel macOS 有限启动观察；完整原生验收 not verified
+Last verified: 2026-11-16 — Intel 原生材质结构检查；视觉模糊及完整原生验收 not verified
 
 对应[验证原生窗口关键风险](https://github.com/NibbleOrg/Nibble-desktop/issues/28)，验收依据[确定原生窗口体验与阶段验收](https://github.com/NibbleOrg/Nibble-desktop/issues/21#issuecomment-6854118028)。这是可复现的临时风险探测，不能作为完整窗口服务或通过验收的替代品。
 
@@ -102,3 +102,37 @@ CI 增加探测 feature clippy/test/build；这些仍不能验证实机。回退
 最终候选的 Intel 原生 UI 回放观察到：单次 `⌘1` 等待 3.5 秒后出现探测窗口；Esc 后立即重复 `⌘1`，同样能重新出现；首个输入获焦。外部点击后 AX 树仍报告探测窗口，当前未能据此可靠核对真实显隐，故外部点击的原生结果仍 not verified，不能引用单测作为通过证据。Apple Silicon 上的原始报告需维护者复测；无短录屏，不提升整体原生验收状态。
 
 本次修复检查通过：format:check、lint、typecheck/绑定漂移、3 前端 + 8 Rust 测试、探测 feature clippy/test、默认构建及探测构建。新增 `objc2-app-kit/libc` feature 用于已有 `processIdentifier` 绑定；Cargo.lock 仅增加至既有 libc 包的依赖边，无新增版本或包。依赖许可与回退沿用上文；修复可回退本次提交，无持久数据变更。
+
+## 材质缺失报告与对照诊断
+
+维护者在 `b21ffcd3d5e912d04c38011e928aa472de9ed1fd` 复测后反馈其他本轮项目没问题，但背景看不出模糊。缺少明确纹理背景的对照和逐场景录屏，材质项不能升级为通过；也未据简短反馈补写设备/OS 等环境事实。
+
+本轮没有复现出可判定的视觉失败，未完成视觉症状的自动红/绿环路，**没有宣称模糊已修复**。Intel macOS 26.7.1 的原生只读检查显示：窗口 `opaque=false`，视图树包含一个非零尺寸 Active / BehindWindow 的 HudWindow 材质，原生 WebView 视图非 opaque，系统 `reduce_transparency=false`。这些不能证明 CSS 绘制、跨应用合成及屏幕实际模糊正确，也不能替代 Apple Silicon 上的报告。
+
+### 同一窗口 A/B
+
+运行 `pnpm dev:probe`，用 ⌘1 打开，将有文字和图案的测试窗口放在后面：
+
+- `⌘6`：移除原生材质，保留当前 CSS 及窗口尺寸。
+- `⌘5`：恢复默认 HudWindow / Active 原生材质，保持 CSS 相同。
+- `⌘7`：在启动终端输出原生材质数量、窗口 opaque、视图 opaque 计数和系统减少透明度状态，不记录应用身份、窗口标题、输入、屏幕内容或坐标。
+
+请比较同一位置的文字/图案清晰度和颜色混合，记录“有明显差异 / 无差异”，保留两种状态的截图，结束时按 ⌘5 恢复默认材质。此为探测对照，不改变默认产品材质或降低既定模糊合同。没有自动上传图像或日志。若外部点击使面板隐藏，重新唤起后再用菜单切换，不点击后面的窗口。
+
+如果两种状态都看起来相同，将 ⌘5 后的 ⌘7 输出附给诊断。不得仅因视图存在就断言视觉通过；不得把纯色背景或单独窗口捕获的浅色结果当作跨应用模糊证据。
+
+### 可自动退出的原生结构检查
+
+在已安装固定依赖的 macOS 检出中执行：
+
+```sh
+pnpm build:web
+cargo run --manifest-path src-tauri/Cargo.toml --features native-probe,tauri/custom-protocol --locked --bin nibble-desktop -- --check-probe-material
+cargo run --manifest-path src-tauri/Cargo.toml --features native-probe,tauri/custom-protocol --locked --bin nibble-desktop -- --check-probe-material-off
+```
+
+这两个命令使用同一个真实窗口构建路径，隐藏 Workbench，等待原生主循环后只读检查本应用的视图树并自动退出：开启时预期 1 个指定材质视图，关闭时预期 0 个；不透明窗口/材质结构不符返回 2，匹配返回 0。视图 opaque 计数仅为诊断信息，局部不透明控件不等于整张网页遮住材质。退出 0 仅表示结构检查匹配，**不是视觉模糊验收通过**。
+
+本机两次命令均退出 0，开启输出 `effect_count: 1, active_hud_behind_window: 1`，关闭输出二者均为 0；两次 `window_opaque: false, opaque_content_views: 0, reduce_transparency: false`。未复现用户机器上的视觉缺失，不能据此指定根因或作视觉修复承诺。
+
+系统布尔值来自 AppKit 的只读 [accessibilityDisplayShouldReduceTransparency](https://developer.apple.com/documentation/appkit/nsworkspace/accessibilitydisplayshouldreducetransparency)，不修改用户设置。[NSVisualEffectView 文档](https://developer.apple.com/documentation/appkit/nsvisualeffectview)说明外观还取决于材质、混合模式和系统设置。`NSVisualEffectView` / `NSAccessibility` Cargo feature 只启用现有锁定 objc2-app-kit 的所需绑定，无新增包、版本或运行时权限。默认未启用 native-probe 的启动不执行检查或显示材质对照菜单。

@@ -138,6 +138,68 @@ fn report(result: Result<()>) {
     }
 }
 
+fn probe_effects() -> tauri::utils::config::WindowEffectsConfig {
+    EffectsBuilder::new()
+        .effect(Effect::HudWindow)
+        .state(EffectState::Active)
+        .build()
+}
+
+#[derive(Debug)]
+struct MaterialInspection {
+    window_opaque: bool,
+    opaque_content_views: usize,
+    effect_count: usize,
+    active_hud_behind_window: usize,
+    reduce_transparency: bool,
+}
+
+fn inspect_material(app: &tauri::AppHandle) -> Result<MaterialInspection> {
+    use objc2_app_kit::{
+        NSView, NSVisualEffectBlendingMode, NSVisualEffectMaterial, NSVisualEffectState,
+        NSVisualEffectView,
+    };
+    fn inspect(view: &NSView, result: &mut MaterialInspection) {
+        let object: &objc2::runtime::AnyObject = view;
+        if let Some(effect) = object.downcast_ref::<NSVisualEffectView>() {
+            result.effect_count += 1;
+            if effect.material() == NSVisualEffectMaterial::HUDWindow
+                && effect.state() == NSVisualEffectState::Active
+                && effect.blendingMode() == NSVisualEffectBlendingMode::BehindWindow
+                && effect.frame().size.width > 0.0
+                && effect.frame().size.height > 0.0
+                && !effect.isHidden()
+            {
+                result.active_hud_behind_window += 1;
+            }
+        } else if view.isOpaque() {
+            result.opaque_content_views += 1;
+        }
+        for child in view.subviews().iter() {
+            inspect(&child, result);
+        }
+    }
+    let window = panel(app)?;
+    // SAFETY: called only on AppKit's main thread; the borrowed live NSWindow
+    // and its view tree are inspected synchronously and never retained here.
+    let native = unsafe { &*window.ns_window()?.cast::<NSWindow>() };
+    let root = native.contentView().ok_or("no content view")?;
+    let mut result = MaterialInspection {
+        window_opaque: native.isOpaque(),
+        opaque_content_views: 0,
+        effect_count: 0,
+        active_hud_behind_window: 0,
+        reduce_transparency: NSWorkspace::sharedWorkspace()
+            .accessibilityDisplayShouldReduceTransparency(),
+    };
+    inspect(&root, &mut result);
+    eprintln!("probe material: {result:?}; native structure only, not visual blur acceptance");
+    if result.reduce_transparency {
+        eprintln!("probe material: system reduces transparency; structure does not imply visual translucency");
+    }
+    Ok(result)
+}
+
 pub fn setup(app: &mut tauri::App) -> Result<()> {
     let window = WebviewWindowBuilder::new(
         app,
@@ -151,12 +213,7 @@ pub fn setup(app: &mut tauri::App) -> Result<()> {
     .transparent(true)
     .always_on_top(true)
     .resizable(false)
-    .effects(
-        EffectsBuilder::new()
-            .effect(Effect::HudWindow)
-            .state(EffectState::Active)
-            .build(),
-    )
+    .effects(probe_effects())
     .build()?;
     // SAFETY: setup runs on AppKit's main thread; ns_window returns this live
     // window's NSWindow pointer, borrowed only for this synchronous call.
@@ -165,11 +222,57 @@ pub fn setup(app: &mut tauri::App) -> Result<()> {
         NSWindowCollectionBehavior::MoveToActiveSpace
             | NSWindowCollectionBehavior::FullScreenAuxiliary,
     );
+    let material_check = std::env::args()
+        .find(|arg| arg == "--check-probe-material" || arg == "--check-probe-material-off");
+    if let Some(mode) = material_check {
+        let enabled = mode == "--check-probe-material";
+        if !enabled {
+            window.set_effects(None::<tauri::utils::config::WindowEffectsConfig>)?;
+        }
+        if let Some(workbench) = app.get_webview_window("workbench") {
+            workbench.hide()?;
+        }
+        let app_handle = app.handle().clone();
+        std::thread::spawn(move || {
+            std::thread::sleep(Duration::from_secs(2));
+            let handle = app_handle.clone();
+            if let Err(error) = app_handle.run_on_main_thread(move || {
+                let result = inspect_material(&handle);
+                let expected = usize::from(enabled);
+                let passed = result.as_ref().is_ok_and(|info| {
+                    !info.window_opaque
+                        && info.effect_count == expected
+                        && info.active_hud_behind_window == expected
+                });
+                report(result.map(|_| ()));
+                eprintln!("probe material structural check: enabled={enabled} passed={passed}");
+                handle.exit(if passed { 0 } else { 2 });
+            }) {
+                eprintln!("PROBE FAILURE: {error}");
+                app_handle.exit(2);
+            }
+        });
+    }
     let items = [
         (
             "open",
             "Open after 3 seconds (switch to target app)",
             "CmdOrCtrl+1",
+        ),
+        (
+            "material-on",
+            "Material comparison: native HudWindow on",
+            "CmdOrCtrl+5",
+        ),
+        (
+            "material-off",
+            "Material comparison: native effect off",
+            "CmdOrCtrl+6",
+        ),
+        (
+            "material-info",
+            "Print native material diagnostics",
+            "CmdOrCtrl+7",
         ),
         ("search", "Search size / focus input", "CmdOrCtrl+2"),
         ("history", "History size / focus input", "CmdOrCtrl+3"),
@@ -209,6 +312,17 @@ pub fn setup(app: &mut tauri::App) -> Result<()> {
                     }
                 });
             }
+            "material-on" => report((|| {
+                panel(app)?.set_effects(probe_effects())?;
+                eprintln!("probe material comparison: native HudWindow on; CSS unchanged");
+                Ok(())
+            })()),
+            "material-off" => report((|| {
+                panel(app)?.set_effects(None::<tauri::utils::config::WindowEffectsConfig>)?;
+                eprintln!("probe material comparison: native effect off; CSS unchanged");
+                Ok(())
+            })()),
+            "material-info" => report(inspect_material(app).map(|_| ())),
             "search" | "history" | "base64" => report((|| {
                 let window = panel(app)?;
                 let height = match event.id().as_ref() {

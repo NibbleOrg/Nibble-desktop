@@ -13,6 +13,7 @@ export function NativeProbe() {
         />
       </header>
       <p>⌘2 搜索尺寸 · ⌘3 历史尺寸 · ⌘4 Base64 尺寸</p>
+      <p>材质对照：⌘5 开启 · ⌘6 关闭 · ⌘7 输出终端诊断</p>
       <p>⌘W / Esc 关闭并恢复原应用 · 外部点击不抢回焦点</p>
       <p>使用 Native probe 菜单中的延迟打开，3 秒内切到目标应用。</p>
       <p>
