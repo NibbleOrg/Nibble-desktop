@@ -2,7 +2,7 @@
 
 Status: Current
 Owner: 项目维护者
-Last verified: 2026-11-13 — v1 规划契约；生产实现与实机行为未验证
+Last verified: 2026-11-16 — 索引链接核对；生产业务与完整实机验收未验证
 
 维护者已审阅通过本套 v1 规划文档，当前正文为规范来源，issue 保留决策历史。Current 表示契约有效，不表示功能已经实现或验证。
 
@@ -15,6 +15,7 @@ Last verified: 2026-11-13 — v1 规划契约；生产实现与实机行为未�
 | [Calendar 扩展](engineering/calendar-future.md) | 未来领域契约，非 v1 功能 |
 | [初始化与命令](engineering/bootstrap.md) | 工具版本、依赖与实际验证范围 |
 | [原生风险探测](engineering/native-window-probe.md) | 隔离探测、复现步骤与未验证场景 |
+| [协作设施](engineering/collaboration-guardrails.md) | 模板、main 保护配置与实际启用证据 |
 | [架构](engineering/architecture.md) | 模块、状态、IPC 和测试边界 |
 | [项目说明](business/project.md) | 用户、价值、维护及路线目标 |
 | [发布运维](operations/release.md) | 支持范围、产物、签名与门禁 |

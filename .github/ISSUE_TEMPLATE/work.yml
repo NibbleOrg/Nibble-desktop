@@ -1,0 +1,57 @@
+name: 工作任务
+description: 提出功能、工程或文档工作，先明确范围与验证。
+title: "[Task] "
+labels: [needs-triage]
+body:
+  - type: markdown
+    attributes:
+      value: 普通实施任务使用此表单；Wayfinder 地图与决策使用其专用协议和 wayfinder 标签。
+  - type: textarea
+    id: purpose
+    attributes:
+      label: 目的与用户价值
+      description: 谁在什么场景遇到什么问题，完成后有什么价值？
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 可验证验收标准
+      placeholder: 用可观察行为或明确结果列出验收条件。
+    validations:
+      required: true
+  - type: textarea
+    id: non_goals
+    attributes:
+      label: 非目标
+      placeholder: 明确这次不交付什么；没有额外非目标时写明。
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: 依赖与当前状态
+      placeholder: 议题链接、阻塞条件及已解决证据；无依赖写无，未知写明待确认。
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: 验证方案
+      description: 提供具体命令或操作、环境、预期结果，以及适用风险覆盖。未运行的检查写 not verified。
+    validations:
+      required: true
+  - type: textarea
+    id: documentation
+    attributes:
+      label: 文档影响
+      placeholder: 需要更新的规范或指南；没有文档影响时说明原因。
+    validations:
+      required: true
+  - type: textarea
+    id: risk
+    attributes:
+      label: 风险与回退
+      placeholder: 失败影响、恢复路径和需要维护者决策的事项。
+    validations:
+      required: true

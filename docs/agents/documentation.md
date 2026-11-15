@@ -2,7 +2,7 @@
 
 Status: Current
 Owner: 项目维护者
-Last verified: 2026-11-13 — v1 规划契约；生产实现与实机行为未验证
+Last verified: 2026-11-16 — 设施事实链接核对；生产业务与完整实机验收未验证
 
 规范文档整理期间为 Draft，以已确认 issue 决议为依据；覆盖与链接核对后统一转 Current 并关闭总蓝图。issue 此后保留历史，当前正文为规范来源，代码表示实现事实。冲突显式解决，旧决议注明替代关系。
 
@@ -12,7 +12,7 @@ Last verified: 2026-11-13 — v1 规划契约；生产实现与实机行为未�
 
 根 AGENTS 保持简短，模块仅在有独特命令、安全或领域不变量时新增局部 AGENTS，说明理由，叠加而不能削弱根规则。模块冲突停止相关实施并修正规则。
 
-现阶段交付文档及 Agent 指南；模板、CI、branch protection 和生产代码是后续实施。不得将规范写成技术控制已经启用。
+工程及 CI 的实际状态见[初始化](../engineering/bootstrap.md)，模板与 main 保护见[协作设施](../engineering/collaboration-guardrails.md)。规范与配置文件不能代替远端启用证据。
 
 
 来源：[#4](https://github.com/NibbleOrg/Nibble-desktop/issues/4)、[#11](https://github.com/NibbleOrg/Nibble-desktop/issues/11)
