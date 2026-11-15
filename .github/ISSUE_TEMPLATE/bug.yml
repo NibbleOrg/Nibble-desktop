@@ -1,0 +1,61 @@
+name: 缺陷报告
+description: 报告可复现的问题，并给出预期、实际和影响。
+title: "[Bug] "
+labels: [needs-triage]
+body:
+  - type: textarea
+    id: purpose_impact
+    attributes:
+      label: 问题、目的与影响
+      description: 问题影响谁、影响什么工作，修复后应恢复什么价值？
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: 版本与环境
+      placeholder: commit、macOS 版本、架构、显示器或其他相关配置；未知项请写明。
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: 最小复现步骤
+      description: 从初始状态开始，写出步骤、输入和复现频率。截图、录屏或日志请去除私人内容及秘密。
+    validations:
+      required: true
+  - type: textarea
+    id: expected_actual
+    attributes:
+      label: 预期与实际
+      placeholder: 分别描述预期行为和实际现象，保留准确错误信息。
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance_verification
+    attributes:
+      label: 修复验收与验证方案
+      description: 什么检查能先失败再通过？列出具体命令或人工步骤及预期；未运行写 not verified。
+    validations:
+      required: true
+  - type: textarea
+    id: non_goals_dependencies
+    attributes:
+      label: 非目标与依赖
+      placeholder: 分别列出本次不处理的范围、相关议题或阻塞；没有时写无，未知项请写明。
+    validations:
+      required: true
+  - type: textarea
+    id: documentation
+    attributes:
+      label: 文档影响
+      placeholder: 相关合同、指南或验证记录需要如何更新？无影响请说明原因。
+    validations:
+      required: true
+  - type: textarea
+    id: risk_rollback
+    attributes:
+      label: 风险与回退
+      description: 列出修复风险、可用恢复路径和需要维护者决策的事项。
+    validations:
+      required: true

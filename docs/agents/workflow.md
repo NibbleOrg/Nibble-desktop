@@ -2,7 +2,7 @@
 
 Status: Current
 Owner: 项目维护者
-Last verified: 2026-11-13 — v1 规划契约；生产实现与实机行为未验证
+Last verified: 2026-11-16 — 协作设施只读核查；远端保护待启用
 
 main 不直接推送工作。Agent 分支 `codex/<issue-number>-<short-slug>`，一分支一 issue 一逻辑变更；`research/<slug>` 为不合并的研究分支。
 
@@ -14,7 +14,7 @@ PR 链接 issue，说明行为、非目标、验证命令和结果、风险/回�
 
 共享 GitHub 身份期间，由维护者亲自写 `Human approval: approved @ <full-commit-sha> - <scope>`；Agent 不得代写或推断。批准绑定提交，新提交使旧批准失效，实质变更重新验证。存在第二独立维护者后改用正式 review。
 
-无绕过 issue、适用 CI、隐私及人类批准的紧急路径；事故使用精简 issue/PR。技术设施尚未启用，见[覆盖与后续](../decision-coverage.md)。
+无绕过 issue、适用 CI、隐私及人类批准的紧急路径；事故使用精简 issue/PR。模板及 main 保护的实际状态、配置和启用步骤见[协作设施](../engineering/collaboration-guardrails.md)。
 
 
 来源：[#4](https://github.com/NibbleOrg/Nibble-desktop/issues/4)
