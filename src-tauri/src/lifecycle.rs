@@ -1,7 +1,7 @@
 //! Main-thread macOS adapter. No content, clipboard or persisted UI drafts.
 #![cfg_attr(feature = "native-probe", allow(dead_code))]
 use crate::panel_session::{close_with_restore, hide_without_fallback, Session, Ticket};
-use crate::window_geometry::{fit, native_frame, Rect};
+use crate::window_geometry::{fit, native_frame, workbench_frame, Rect};
 use objc2::rc::Retained;
 use objc2_app_kit::{
     NSApplicationActivationOptions, NSRunningApplication, NSWindow, NSWindowCollectionBehavior,
@@ -178,6 +178,12 @@ fn geometry(app: &tauri::AppHandle, opening: bool, height: u32) -> Result<()> {
         (f64::from(height) * scale).round() as u32,
         (24.0 * scale).round() as i32,
     );
+    apply_frame(&panel, rect)
+}
+
+/// Commit outer position and size together on AppKit's main thread.
+fn apply_frame(panel: &WebviewWindow, rect: Rect) -> Result<()> {
+    let position = platform(panel.outer_position())?;
     // Tauri/Tao queues set_size/set_position onto the main dispatch queue even
     // from the main thread. Commit one native frame synchronously before show
     // (and on each resize tick), rather than displaying the old centered frame.
@@ -203,6 +209,23 @@ fn geometry(app: &tauri::AppHandle, opening: bool, height: u32) -> Result<()> {
     native.setFrame_display(frame, true);
     Ok(())
 }
+fn size_workbench(app: &tauri::AppHandle) -> Result<()> {
+    let workbench = window(app, "workbench")?;
+    let monitor = platform(workbench.current_monitor())?
+        .or(platform(workbench.primary_monitor())?)
+        .ok_or(LifecycleError::DisplayUnavailable)?;
+    let area = monitor.work_area();
+    apply_frame(
+        &workbench,
+        workbench_frame(Rect {
+            x: area.position.x,
+            y: area.position.y,
+            width: area.size.width,
+            height: area.size.height,
+        }),
+    )
+}
+
 pub fn open(app: &tauri::AppHandle) -> Result<()> {
     if STATE.with(|s| s.borrow().session.current().is_some()) {
         return Ok(());
@@ -451,6 +474,7 @@ pub fn toggle_demo_pause(app: &tauri::AppHandle) -> Result<()> {
     Ok(())
 }
 pub fn setup(app: &mut tauri::App) -> std::result::Result<(), Box<dyn std::error::Error>> {
+    report(app.handle(), size_workbench(app.handle()));
     let panel = window(app.handle(), "quick-panel")?;
     // SAFETY: setup is on the AppKit main thread; borrow the live NSWindow only
     // for this synchronous call. It is never retained or passed to another thread.

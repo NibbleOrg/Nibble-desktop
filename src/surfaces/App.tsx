@@ -7,6 +7,8 @@ import {
 } from "../ipc/bindings";
 import { useLifecycle } from "../ipc/useLifecycle";
 import styles from "./App.module.css";
+import workbench from "./Workbench.module.css";
+import { Calendar } from "./CalendarView";
 const errors: Record<LifecycleError, string> = {
   shortcutRegistrationFailed:
     "⌥Space 注册失败。可从托盘打开 Quick Panel；快捷键设置由设置功能接入。",
@@ -55,34 +57,61 @@ function Workbench({
       void commands.settingsAcknowledged().catch(() => {});
   }, [snapshot?.settingsRequested]);
   return (
-    <main className={styles.shell}>
-      <p>Nibble · 本地体验版本</p>
-      <h1>Workbench</h1>
-      <nav aria-label="Workbench">
-        <button onClick={() => setRoute("home")}>Home</button>
-        <button onClick={() => setRoute("settings")}>设置</button>
+    <main
+      className={workbench.shell}
+      data-reduced-motion={snapshot?.reducedMotion ?? false}
+    >
+      <nav className={workbench.rail} aria-label="Workbench">
+        <span className={workbench.brand} aria-label="Nibble">
+          n.
+        </span>
+        <button
+          aria-label="Home"
+          aria-current={route === "home" ? "page" : undefined}
+          onClick={() => setRoute("home")}
+          title="Home"
+        >
+          ⌂
+        </button>
+        <button
+          className={workbench.settingsButton}
+          aria-label="设置"
+          aria-current={route === "settings" ? "page" : undefined}
+          onClick={() => setRoute("settings")}
+          title="设置"
+        >
+          ⚙
+        </button>
       </nav>
-      <h2>{route === "home" ? "Home" : "设置 · Quick Panel"}</h2>
-      <p>本地启动骨架，业务能力尚未实现。</p>
-      {route === "settings" && (
-        <p>
-          全局快捷键：⌥Space{" "}
-          {snapshot?.shortcutAvailable ? "（已注册）" : "（未注册）"}
-          。配置与保存功能尚未实现。
-        </p>
-      )}
-      <p>关闭窗口后继续驻留托盘；⌘Q 完整退出。</p>
-      {snapshot?.fault && (
-        <p role="alert">
-          {errors[snapshot.fault] ?? "窗口服务异常，请从托盘重试。"}
-        </p>
-      )}
-      {snapshot?.shortcutFailure && (
-        <p role="alert">{snapshot.shortcutFailure}</p>
-      )}
-      {failed && (
-        <p role="alert">窗口服务暂不可用，重新激活 Workbench 后重试。</p>
-      )}
+      <div className={workbench.content}>
+        <div hidden={route !== "home"} className={workbench.route}>
+          <Calendar reducedMotion={snapshot?.reducedMotion ?? false} />
+        </div>
+        {route === "settings" && (
+          <section className={`${workbench.settings} ${workbench.route}`}>
+            <p className={workbench.eyebrow}>SETTINGS</p>
+            <h1>设置</h1>
+            <h2>Quick Panel</h2>
+            <p>
+              全局快捷键：⌥Space{" "}
+              {snapshot?.shortcutAvailable ? "（已注册）" : "（未注册）"}
+            </p>
+            <p>配置与保存功能尚未实现。</p>
+            <p>关闭窗口后继续驻留托盘；⌘Q 完整退出。</p>
+          </section>
+        )}
+        {snapshot?.fault && (
+          <p role="alert">
+            {errors[snapshot.fault] ?? "窗口服务异常，请从托盘重试。"}
+          </p>
+        )}
+        {snapshot?.shortcutFailure && (
+          <p role="alert">{snapshot.shortcutFailure}</p>
+        )}
+        {failed && (
+          <p role="alert">窗口服务暂不可用，重新激活 Workbench 后重试。</p>
+        )}
+      </div>
     </main>
   );
 }

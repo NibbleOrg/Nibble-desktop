@@ -22,6 +22,22 @@ pub fn fit(area: Rect, old: Option<Rect>, width: u32, height: u32, gap: i32) -> 
     }
 }
 
+/// Center an outer window frame with equal physical-pixel margins and ~80% area.
+pub fn workbench_frame(area: Rect) -> Rect {
+    let width = f64::from(area.width);
+    let height = f64::from(area.height);
+    // (w - 2m)(h - 2m) = 0.8wh, using the stable form of the smaller root.
+    let margin = (0.2 * width * height
+        / (width + height + ((width + height).powi(2) - 0.8 * width * height).sqrt()))
+    .round() as u32;
+    Rect {
+        x: area.x + margin as i32,
+        y: area.y + margin as i32,
+        width: area.width.saturating_sub(2 * margin),
+        height: area.height.saturating_sub(2 * margin),
+    }
+}
+
 /// Convert a constrained top-left physical rect to AppKit's bottom-left points.
 /// Anchor the conversion in the live window so virtual desktop origins and
 /// the primary screen's height need not be guessed.
@@ -142,5 +158,30 @@ mod native_frame_tests {
         );
         assert_eq!(result, (-1200.0, -256.0, 650.0, 620.0));
         assert_eq!(result.1 + result.3, 364.0);
+    }
+}
+
+#[cfg(test)]
+mod workbench_tests {
+    use super::*;
+    #[test]
+    fn equal_margins_cover_four_fifths_on_wide_and_portrait_displays() {
+        for (width, height) in [(1920, 1040), (1080, 1880), (2880, 1760), (600, 400)] {
+            let area = Rect {
+                x: -2880,
+                y: -180,
+                width,
+                height,
+            };
+            let frame = workbench_frame(area);
+            let left = frame.x - area.x;
+            let top = frame.y - area.y;
+            assert_eq!(left, top);
+            assert_eq!(left as u32, area.width - frame.width - left as u32);
+            assert_eq!(top as u32, area.height - frame.height - top as u32);
+            let ratio = f64::from(frame.width) * f64::from(frame.height)
+                / (f64::from(width) * f64::from(height));
+            assert!((ratio - 0.8).abs() < 0.006, "{ratio}");
+        }
     }
 }
