@@ -26,9 +26,13 @@ Last verified: 2026-11-17 — 自动化、原生构建与浏览器窄窗核对�
 
 ![380×580 浏览器窄窗](evidence/workbench-calendar-narrow.jpg)
 
+## 合并后原生核对
+
+已在合并提交 `5bd3aa2` 的 Intel macOS 本地打包应用验证月份浏览、设置往返状态保留、关闭请求后重新激活状态保留及完整退出重启重置，具体边界、截图与剩余缺项见[原生验收记录](evidence/workbench-native-2026-11-17.md)。PR 已合并；原生完整矩阵仍未完成，不能把此前 draft 状态描述当作当前 PR 状态。
+
 ## 待实机验收
 
-以下均 **not verified**，保留 draft，不自评关闭议题：
+以下为原候选矩阵；已部分验证的项目以合并后记录为准，其余仍 **not verified**，不自评关闭议题：
 
 1. `pnpm dev` 启动 Home 当前月，浏览后设置往返、关闭隐藏、托盘/Dock 重开保留路由和月份；⌘Q 后重启重置。
 2. 从 Quick Panel 用 ⌘, 导航到 Settings → Quick Panel，返回 Home 保留月份；原生协调集成场景。
