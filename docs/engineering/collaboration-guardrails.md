@@ -6,6 +6,12 @@ Last verified: 2026-11-16 — main 规则集已启用，并回读核对生效范
 
 对应[建立协作模板与 main 保护](https://github.com/NibbleOrg/Nibble-desktop/issues/29)。审批规范见[工程工作流](../agents/workflow.md)，验收规范见[质量](../agents/quality.md)。本页区分配置文件、远端启用及验证结果。
 
+## #47 暂停 checks 提案
+
+维护者随后明确要求“先暂停 PR 需要 checks 阶段”，替代 #47 起初仅允许提前 CR、保持必需检查的范围。候选 `.github/rulesets/main.json` 已移除 `required_status_checks`；远端当前仍是下表的原配置，尚未应用暂停，不能把文件变更表示成已生效。
+
+暂停只影响远端合并时等待 macos passed，CI 仍照常运行。执行前保存规则集完整 API 结果；取得维护者绑定最终 SHA 的治理批准后，PUT 更新既有 ID 27338759，仅删除必需检查规则，保留服务端其他参数、条件、PR/讨论解决、禁止强推/删除及空 bypass；随后回读 ruleset 与 main effective-rules，确认恰少这一项。恢复使用保存的原配置，按同样批准与回读流程执行。实际执行结果后续补录。
+
 ## 当前状态
 
 2026-11-16 完成维护者批准核对、创建及回读，目标为 `NibbleOrg/Nibble-desktop`：
