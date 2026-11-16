@@ -2,7 +2,7 @@
 
 Status: Current
 Owner: 项目维护者
-Last verified: 2026-11-16 — #30 候选默认入口及命令核对；原生交互 not verified
+Last verified: 2026-11-16 — #45 Action manifest/迁移核对；原生交互 not verified
 
 ## 环境与命令
 
@@ -21,6 +21,23 @@ pnpm build
 仅桌面开发需 Xcode Command Line Tools 与 Rust；通过 rustup 可按 rust-toolchain.toml 安装工具链。本地 MacPorts Rust 版本相同但没有 rustup；CI 显式安装固定工具链。
 
 初始化基线创建 Workbench 可见与 Quick Panel 隐藏的两个窗口。#30 候选已在默认入口接入托盘、单实例、默认快捷键及窗口协调，接口和实机缺项见[窗口生命周期服务](window-lifecycle.md)；业务尚未实现。pnpm dev:web 只运行浏览器前端，不能验证 IPC 或原生行为。build 构建真实应用可执行文件但不打公开安装包。临时单色图标仅用于开发编译，不是品牌交付。
+
+## CI Action 运行时（#45）
+
+工作流固定官方发布的完整提交 SHA：
+
+| Action | 版本 / SHA | Action 内部运行时 |
+|---|---|---|
+| [actions/checkout](https://github.com/actions/checkout/releases/tag/v7.0.1) | v7.0.1 / `3d3c42e5aac5ba805825da76410c181273ba90b1` | Node 24 |
+| [actions/setup-node](https://github.com/actions/setup-node/releases/tag/v7.1.0) | v7.1.0 / `949feb2413d6458794dcd2491c4babbbce0c15c1` | Node 24 |
+
+2026-11-16 通过官方仓库 API 核对发布 tag、提交签名验证结果及对应 SHA 的 `action.yml`，两者均声明 `runs.using: node24`。Action 内部 Node 与项目工具链分开，项目仍从 `.node-version` 安装 Node 26.13.0。
+
+最低通用 runner 要求为 v2.327.1（Node 24）；checkout 的认证 Git Docker 容器场景要求 v2.329.0，本工作流没有容器步骤。使用 GitHub-hosted `macos-15`，实际 runner 版本及警告消除以本票 PR 的真实运行日志为准；仅更新 manifest 不算远端验收。
+
+迁移审查：checkout v6+ 将持久化凭据放在 `$RUNNER_TEMP` 的独立文件，而非直接写 `.git/config`，保留其默认 post-job 清理；本工作流没有认证 Git 容器步骤。v7 的不安全 fork checkout 检查不影响当前 `pull_request` 触发器，不开启绕过输入。setup-node v7 删除虚假 `NODE_AUTH_TOKEN` fallback，但本工作流没有 `registry-url`；显式 `package-manager-cache: false` 保持无隐式缓存行为，不改变 pnpm 冻结安装。工作流继续使用 `contents: read` 和原有触发器/必需检查名，不添加凭据、写权限或允许旧 Node 的环境变量。
+
+依赖来源为官方 GitHub `actions` 仓库，两项 Action 均 MIT；完整 SHA 限定审阅内容，不宣称签名验证等于完整依赖漏洞审计。迁移说明见 [checkout](https://github.com/actions/checkout#whats-new)、[setup-node](https://github.com/actions/setup-node#breaking-changes-in-v5) 和 [Node 20 弃用公告](https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/)。回滚仅恢复本票之前的两个 SHA 并移除新增缓存输入；不改应用数据或降级项目 Node。回滚会恢复原弃用警告，不能宣称问题仍已解决。
 
 ## 模块与 IPC
 
