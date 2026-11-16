@@ -38,3 +38,19 @@ Last verified: 2026-11-17 — 合并提交上的 Intel macOS 原生 smoke；未�
 - PR 49 远端 CI：[run 43910204920](https://github.com/NibbleOrg/Nibble-desktop/actions/runs/43910204920) 为 cancelled，job 无执行步骤；不是 passed，也没有可归因的代码失败日志。合并提交对应 [main run 43913987099](https://github.com/NibbleOrg/Nibble-desktop/actions/runs/43913987099) 查询时为 queued，仍未验证。
 
 实施与剩余矩阵见[Workbench 月历](../workbench-calendar.md)。本记录不关闭实施议题。
+
+## 授权系统偏好测试与修复复测
+
+维护者明确授权临时切换系统地区、周首日与减少动态，测试后恢复。原值：English 主语言、简体中文次语言；China mainland、Gregorian、Sunday、Celsius、Metric、日期 2026/8/19、数字 1,234,567.89、Universal 排序；Reduce motion=off。
+
+在原合并版发现可重复缺陷：First day of week=Monday 时，月历仍从 Sunday November 1 开始，完整退出重启也不变；United Kingdom 地区默认周一也未被采用。Foundation 原生读取替代仅靠 WebKit locale 的实现后，追加工作树候选复测：
+
+- 中国大陆地区单独将周首日改为 Monday，点击激活 Workbench 后首格变为 Monday October 26，六行仍完整，见[周一覆盖截图](workbench-native-monday.jpg)。
+- 切到 United Kingdom 并保留 English (US) 主语言，运行中地区格式存在进程缓存；完整退出重启后首格为 Monday, 26 October 2026，日期为英国格式，见[英国地区冷启动截图](workbench-native-uk.jpg)。这里只验证冷启动，不将运行中地区自动更新标为通过。
+- 原合并版系统临时设为 Buddhist（系统显示 2569 BE），应用在重新启动后仍为 November 2026：固定公历通过。追加原生接口只读偏好，不改变显式 gregory 格式化。
+- 原合并版 Reduce motion=on 时月份浏览正常；没有逐帧录像或原生 DOM 动画样式采样，不能宣称无位移/交叉淡入已通过，此项仍 not verified。
+- 每轮均恢复设置；最后回读 China mainland、Gregorian、Sunday、原日期/数字格式、Celsius、Metric、English 主语言和 Reduce motion=off，并完整重启应用回到周日开头的 November 2026。未修改时间、时区、账户、网络或任何隐私权限。
+
+截图仅包含 Nibble 窗口，没有保存系统设置中的账户画面。原生修复候选尚未合并，原合并提交不因本记录而自动变为通过。
+
+最终本地检查：`pnpm test`（13 前端 / 23 Rust）、`pnpm lint`、`pnpm typecheck`（含生成漂移）、`pnpm format:check`、`git diff --check` 及 `pnpm exec tauri build --bundles app` 全部通过。文档相对链接核对通过。未重复隔离探测 feature 的原生构建，仍 not verified；本修复无探测行为变更。修复 PR 的独立 CR/远端 CI 与提交级人类审批尚待完成。

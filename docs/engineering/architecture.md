@@ -42,3 +42,7 @@ Rust 统一协调 Quick Panel 显隐、原应用焦点和原生尺寸，React �
 
 
 来源：[#8](https://github.com/NibbleOrg/Nibble-desktop/issues/8)、[#10](https://github.com/NibbleOrg/Nibble-desktop/issues/10)、[#12](https://github.com/NibbleOrg/Nibble-desktop/issues/12)
+
+## Workbench 系统日期偏好候选
+
+受限的 `calendar_preferences` 命令由 Rust 读取 macOS Foundation 地区与周首日覆盖，Workbench 独占授权，前端不访问系统偏好存储。字段、刷新/失败行为及实机缓存限制见[Workbench 月历](workbench-calendar.md#系统日期偏好修复候选)。不读取 Calendar Event 或外部 Calendar Source。

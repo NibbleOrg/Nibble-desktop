@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calendarDays, weekStart } from "./calendar";
+import { calendarDays, weekStart } from "../calendar";
 
 describe("Gregorian calendar", () => {
   it("includes leap day and adjacent dates in exactly six weeks", () => {
