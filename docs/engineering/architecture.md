@@ -2,7 +2,7 @@
 
 Status: Current
 Owner: 项目维护者
-Last verified: 2026-11-13 — v1 规划契约；生产实现与实机行为未验证
+Last verified: 2026-11-16 — #30 候选模块/接口引用核对；生产业务与实机行为未验证
 
 一个 React 工程和一个 Rust 工程。前端按 Workbench、Quick Panel、共享组件与调用契约组织；Rust 按命令入口、应用服务、领域规则、存储和平台适配组织。共享模块不依赖具体界面外壳，业务规则不依赖 Tauri 或平台对象。
 
@@ -38,7 +38,7 @@ Rust 统一协调 Quick Panel 显隐、原应用焦点和原生尺寸，React �
 
 可替换时钟、存储、剪贴板、安全存储及窗口接口。自动化覆盖保留/去重、清空捕获竞态、设置回滚、过期请求、窗口切换、IPC 权限与输入校验；真实 macOS 验证权限、焦点、快捷键、窗口效果与更新。
 
-底层存储格式、类型生成工具、精确模块路径、命令名和构建/测试命令均未实现；实施 issue 须给出具体选择与可执行验证。先实现可整体启动的双界面体验，再逐步实现复杂业务，不能削弱既定最终验收。
+业务存储与能力实现尚未交付；工程类型生成及构建/测试入口见[初始化](bootstrap.md)，#30 窗口候选的精确模块、命令、最小权限和验证缺项见[窗口生命周期服务](window-lifecycle.md)。这些实现记录不表示原生验收通过。先实现可整体启动的双界面体验，再逐步实现复杂业务，不能削弱既定最终验收。
 
 
 来源：[#8](https://github.com/NibbleOrg/Nibble-desktop/issues/8)、[#10](https://github.com/NibbleOrg/Nibble-desktop/issues/10)、[#12](https://github.com/NibbleOrg/Nibble-desktop/issues/12)

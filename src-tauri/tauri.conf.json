@@ -23,13 +23,24 @@
         "title": "Nibble — Quick Panel",
         "url": "index.html?surface=quick-panel",
         "width": 650,
-        "height": 300,
-        "visible": false
+        "height": 264,
+        "visible": false,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "resizable": false,
+        "skipTaskbar": true,
+        "focus": false
       }
     ],
     "security": {
       "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src ipc: http://ipc.localhost"
     }
   },
-  "bundle": { "active": false, "macOS": { "minimumSystemVersion": "14.0" } }
+  "bundle": {
+    "active": false,
+    "macOS": {
+      "minimumSystemVersion": "14.0"
+    }
+  }
 }

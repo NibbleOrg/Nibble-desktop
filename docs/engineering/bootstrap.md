@@ -2,7 +2,7 @@
 
 Status: Current
 Owner: 项目维护者
-Last verified: 2026-11-13 — 工程初始化；原生交互 not verified
+Last verified: 2026-11-16 — #30 候选默认入口及命令核对；原生交互 not verified
 
 ## 环境与命令
 
@@ -20,11 +20,11 @@ pnpm build
 
 仅桌面开发需 Xcode Command Line Tools 与 Rust；通过 rustup 可按 rust-toolchain.toml 安装工具链。本地 MacPorts Rust 版本相同但没有 rustup；CI 显式安装固定工具链。
 
-pnpm dev 创建 Workbench 可见与 Quick Panel 隐藏的两个窗口，只有初始化提示；无业务、托盘、快捷键或焦点恢复。后者由独立任务交付。pnpm dev:web 只运行浏览器前端，不能验证 IPC 或原生行为。build 构建真实应用可执行文件但不打公开安装包。临时单色图标仅用于开发编译，不是品牌交付。
+初始化基线创建 Workbench 可见与 Quick Panel 隐藏的两个窗口。#30 候选已在默认入口接入托盘、单实例、默认快捷键及窗口协调，接口和实机缺项见[窗口生命周期服务](window-lifecycle.md)；业务尚未实现。pnpm dev:web 只运行浏览器前端，不能验证 IPC 或原生行为。build 构建真实应用可执行文件但不打公开安装包。临时单色图标仅用于开发编译，不是品牌交付。
 
 ## 模块与 IPC
 
-src/surfaces 为独立界面入口，src/ipc/client.ts 集中调用 Rust 生成的 bindings.ts；src-tauri/src/lib.rs 当前仅提供无内容元信息。两个窗口只有 allow-bootstrap-info，无文件、剪贴板、shell 或其他插件权限。应用命令通过 build.rs app manifest 显式参与 ACL。
+src/surfaces 为独立界面入口，src/ipc 使用 Rust 生成的 bindings.ts。初始化元信息命令保留，#30 新增分窗口生命周期命令与版本通知，精确权限见[窗口服务](window-lifecycle.md#ipc-和最小权限)；没有文件、剪贴板、shell 或前端插件注册权限。应用命令通过 build.rs app manifest 显式参与 ACL。
 
 pnpm bindings:generate 生成类型；bindings:check 在生成前保存内容再比较，漂移则失败。前端代码导入生成类型，不手写重复契约。生成器不代替输入及权限验证。本阶段唯一命令没有用户输入。
 
@@ -62,13 +62,13 @@ Rust 直接依赖：tauri 与 tauri-build 为 MIT OR Apache-2.0，serde 为 MIT 
 
 ## 验证范围
 
-组件合同检查两界面未实现状态；IPC 合同检查生成调用及传输失败传播；Rust 测试无内容元信息。CI 完成格式、lint、类型/生成、测试、原生 build。不包含实机焦点、Space、多屏、权限或产品验收。main 保护与模板尚待协作设施任务。
+初始化组件合同检查两界面未实现状态；IPC 合同检查生成调用及传输失败传播；Rust 检查无内容元信息。#30 候选新增会话、关闭/恢复失败顺序、权限及版本同步测试，详见[窗口服务](window-lifecycle.md)。CI 完成格式、lint、类型/生成、测试、原生 build。不包含实机焦点、Space、多屏、权限或产品验收。main 保护与模板实际启用证据见[协作设施](collaboration-guardrails.md)。
 
 ## 初始依赖审计记录
 
 pnpm audit 报告一项开发依赖 minimatch 中等级 glob 放大 DoS（GHSA-g3hv-75wg-m249）；当前 10.2.6，修复版要求 >=11.0.1。它用于本仓库受控 lint 路径，不进入应用运行时。未擅自强制跨 major override；此已知风险需初始化 PR 维护者审阅，后续通过工具链更新消除。Rust metadata 全部传递包有许可声明；存在 MPL-2.0 和多许可选项，后续公开分发需汇总通知义务，不能宣称已完成法律合规审查。Rust 漏洞库扫描未执行。
 
-## 本次执行证据
+## 初始化执行证据（历史）
 
 本地及独立干净目录（无 node_modules、dist、target）均完成冻结安装、format:check、lint、typecheck/绑定漂移、3 项前端测试、1 项 Rust 测试及 Tauri release 构建。pnpm peers check 无冲突。浏览器核对两个入口的未实现提示，以下仅为浏览器渲染，不证明原生窗口行为：
 

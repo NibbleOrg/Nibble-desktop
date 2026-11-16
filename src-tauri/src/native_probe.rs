@@ -1,8 +1,8 @@
 //! Throwaway macOS risk harness, compiled only with `native-probe`.
 //! Native menu actions deliberately add no webview IPC authority.
 use crate::{
-    probe_geometry::{fit, Rect},
     probe_schedule::{on_focus_lost, PendingOpen},
+    window_geometry::{fit, Rect},
 };
 use objc2::rc::Retained;
 use objc2_app_kit::{

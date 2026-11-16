@@ -6,3 +6,53 @@
   background: var(--surface);
   border-radius: 1rem;
 }
+.panel {
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding: 16px 22px;
+  color: #28251f;
+  background: rgb(255 247 234 / 65%);
+  border: 1px solid rgb(255 255 255 / 60%);
+  border-radius: 24px;
+  overflow-wrap: anywhere;
+}
+.panel h1 {
+  font-size: 14px;
+  margin: 0;
+}
+.panel p {
+  font-size: 12px;
+}
+.panel input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 10px;
+  color: #28251f;
+  background: #fff9;
+  border: 1px solid #b7aa97;
+  border-radius: 8px;
+}
+.panel button,
+.shell button {
+  margin: 6px;
+  padding: 8px 12px;
+}
+.panel footer {
+  margin-top: 10px;
+}
+.transition {
+  animation: content-in 200ms ease-out;
+}
+@keyframes content-in {
+  from {
+    opacity: 0.5;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .transition {
+    animation: none;
+  }
+}

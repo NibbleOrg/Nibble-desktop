@@ -14,6 +14,7 @@ Last verified: 2026-11-16 — 索引链接核对；生产业务与完整实机�
 | [隐私与数据](product/privacy.md) | 捕获、保留、删除与恢复 |
 | [Calendar 扩展](engineering/calendar-future.md) | 未来领域契约，非 v1 功能 |
 | [初始化与命令](engineering/bootstrap.md) | 工具版本、依赖与实际验证范围 |
+| [窗口生命周期服务](engineering/window-lifecycle.md) | #30 候选接口、权限与正式实机验收缺项 |
 | [原生风险探测](engineering/native-window-probe.md) | 隔离探测、复现步骤与未验证场景 |
 | [协作设施](engineering/collaboration-guardrails.md) | 模板、main 保护配置与实际启用证据 |
 | [架构](engineering/architecture.md) | 模块、状态、IPC 和测试边界 |

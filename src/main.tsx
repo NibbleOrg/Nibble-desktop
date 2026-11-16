@@ -10,6 +10,8 @@ const surface =
   new URLSearchParams(location.search).get("surface") === "quick-panel"
     ? "quick-panel"
     : "workbench";
+if (surface === "quick-panel")
+  document.documentElement.dataset.quickPanel = "true";
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     {probe ? <NativeProbe /> : <App surface={surface} />}

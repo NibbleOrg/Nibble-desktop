@@ -1,4 +1,4 @@
-//! Physical-pixel geometry for the isolated native risk probe.
+//! Shared physical-pixel constraints; independent of native window APIs.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Rect {
     pub x: i32,

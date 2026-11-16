@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-lifecycle-snapshot"
+description = "Enables the lifecycle_snapshot command without any pre-configured scope."
+commands.allow = ["lifecycle_snapshot"]
+
+[[permission]]
+identifier = "deny-lifecycle-snapshot"
+description = "Denies the lifecycle_snapshot command without any pre-configured scope."
+commands.deny = ["lifecycle_snapshot"]

@@ -6,6 +6,13 @@ import type { InvokeOptions } from "@tauri-apps/api/core";
 /** Commands */
 export const commands = {
 	bootstrapInfo: (options?: InvokeOptions) => __TAURI_INVOKE<BootstrapInfo>("bootstrap_info", undefined, options),
+	lifecycleSnapshot: (options?: InvokeOptions) => __TAURI_INVOKE<Snapshot_Serialize>("lifecycle_snapshot", undefined, options),
+	panelClose: (session: number, options?: InvokeOptions) => __TAURI_INVOKE<null>("panel_close", { session }, options),
+	panelTransition: (session: number, view: View, options?: InvokeOptions) => __TAURI_INVOKE<Snapshot_Serialize>("panel_transition", { session, view }, options),
+	panelTransitionComplete: (session: number, request: number, options?: InvokeOptions) => __TAURI_INVOKE<null>("panel_transition_complete", { session, request }, options),
+	panelSettings: (session: number, options?: InvokeOptions) => __TAURI_INVOKE<null>("panel_settings", { session }, options),
+	panelToggleDemoPause: (session: number, options?: InvokeOptions) => __TAURI_INVOKE<null>("panel_toggle_demo_pause", { session }, options),
+	settingsAcknowledged: (options?: InvokeOptions) => __TAURI_INVOKE<null>("settings_acknowledged", undefined, options),
 };
 
 /* Types */
@@ -13,3 +20,35 @@ export type BootstrapInfo = {
 	version: string,
 	stage: string,
 };
+
+export type LifecycleError = "windowOperationFailed" | "windowUnavailable" | "displayUnavailable" | "focusRestoreRejected" | "staleOrBusy" | "forbiddenWindow" | "staleSession" | "returnToSearchFirst" | "shortcutRegistrationFailed";
+
+export type Snapshot = Snapshot_Serialize | Snapshot_Deserialize;
+
+export type Snapshot_Deserialize = {
+	version: number,
+	session?: number | null,
+	view: View,
+	transition?: number | null,
+	settingsRequested: boolean,
+	shortcutAvailable: boolean,
+	shortcutFailure?: string | null,
+	fault?: LifecycleError | null,
+	reducedMotion: boolean,
+	demoPaused: boolean,
+};
+
+export type Snapshot_Serialize = {
+	version: number,
+	session: number | null,
+	view: View,
+	transition: number | null,
+	settingsRequested: boolean,
+	shortcutAvailable: boolean,
+	shortcutFailure: string | null,
+	fault: LifecycleError | null,
+	reducedMotion: boolean,
+	demoPaused: boolean,
+};
+
+export type View = "search" | "history" | "base64";

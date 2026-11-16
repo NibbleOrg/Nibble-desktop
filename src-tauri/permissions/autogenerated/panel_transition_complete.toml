@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-panel-transition-complete"
+description = "Enables the panel_transition_complete command without any pre-configured scope."
+commands.allow = ["panel_transition_complete"]
+
+[[permission]]
+identifier = "deny-panel-transition-complete"
+description = "Denies the panel_transition_complete command without any pre-configured scope."
+commands.deny = ["panel_transition_complete"]
