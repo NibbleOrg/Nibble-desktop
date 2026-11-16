@@ -6,6 +6,12 @@ Last verified: 2026-11-16 — main 规则集已启用，并回读核对生效范
 
 对应[建立协作模板与 main 保护](https://github.com/NibbleOrg/Nibble-desktop/issues/29)。审批规范见[工程工作流](../agents/workflow.md)，验收规范见[质量](../agents/quality.md)。本页区分配置文件、远端启用及验证结果。
 
+## #47 暂停 checks 提案
+
+维护者随后明确要求“先暂停 PR 需要 checks 阶段”，替代 #47 起初仅允许提前 CR、保持必需检查的范围。候选 `.github/rulesets/main.json` 已移除 `required_status_checks`；远端当前仍是下表的原配置，尚未应用暂停，不能把文件变更表示成已生效。
+
+暂停只影响远端合并时等待 macos passed，CI 仍照常运行。执行前保存规则集完整 API 结果；取得维护者绑定最终 SHA 的治理批准后，PUT 更新既有 ID 27338759，仅删除必需检查规则，保留服务端其他参数、条件、PR/讨论解决、禁止强推/删除及空 bypass；随后回读 ruleset 与 main effective-rules，确认恰少这一项。恢复使用保存的原配置，按同样批准与回读流程执行。实际执行结果后续补录。
+
 ## 当前状态
 
 2026-11-16 完成维护者批准核对、创建及回读，目标为 `NibbleOrg/Nibble-desktop`：
@@ -33,7 +39,7 @@ main 现已受规则集保护。启用依据是维护者本人在 [PR 40 的批�
 - `.github/pull_request_template.md`：Summary / Evidence / Merge Danger，关联议题、验收对应、依赖状态、命令/场景结果、风险/恢复与文档影响。
 - 普通表单初始使用 `needs-triage`，充分定义后按分流规则调整；保留 Blank issue 供 Wayfinder 地图/决策使用其专用结构及标签。
 
-模板不代表人类批准，也不自动关闭普通实施 issue。未完成验收保留 draft，未运行写 not verified。字段完整性仍需分流和评审；这些模板不是运行时或安全边界。
+CR 与 CI 可并行，开始时机及结论范围见[质量规范](../agents/quality.md#cr-与-ci-并行)；这不改变下述 main 合并保护。模板不代表人类批准，也不自动关闭普通实施 issue。未完成验收保留 draft，未运行写 not verified。字段完整性仍需分流和评审；这些模板不是运行时或安全边界。
 
 ## 已启用的保护配置
 
