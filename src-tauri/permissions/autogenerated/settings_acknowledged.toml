@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-settings-acknowledged"
+description = "Enables the settings_acknowledged command without any pre-configured scope."
+commands.allow = ["settings_acknowledged"]
+
+[[permission]]
+identifier = "deny-settings-acknowledged"
+description = "Denies the settings_acknowledged command without any pre-configured scope."
+commands.deny = ["settings_acknowledged"]

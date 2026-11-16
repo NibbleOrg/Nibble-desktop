@@ -1,0 +1,4 @@
+[[permission]]
+identifier = "allow-panel-session"
+description = "Control only the caller's current Quick Panel session."
+commands.allow = ["panel_close", "panel_transition", "panel_transition_complete", "panel_settings", "panel_toggle_demo_pause"]

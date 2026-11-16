@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-panel-toggle-demo-pause"
+description = "Enables the panel_toggle_demo_pause command without any pre-configured scope."
+commands.allow = ["panel_toggle_demo_pause"]
+
+[[permission]]
+identifier = "deny-panel-toggle-demo-pause"
+description = "Denies the panel_toggle_demo_pause command without any pre-configured scope."
+commands.deny = ["panel_toggle_demo_pause"]

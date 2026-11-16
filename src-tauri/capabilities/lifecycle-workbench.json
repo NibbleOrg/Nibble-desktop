@@ -1,0 +1,11 @@
+{
+  "identifier": "lifecycle-workbench",
+  "description": "Read lifecycle faults and receive settings navigation only.",
+  "windows": ["workbench"],
+  "permissions": [
+    "allow-lifecycle-snapshot",
+    "allow-settings-acknowledged",
+    "core:event:allow-listen",
+    "core:event:allow-unlisten"
+  ]
+}

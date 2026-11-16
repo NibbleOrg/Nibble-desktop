@@ -1,0 +1,11 @@
+{
+  "identifier": "lifecycle-panel",
+  "description": "Current panel session only; no arbitrary window or plugin control.",
+  "windows": ["quick-panel"],
+  "permissions": [
+    "allow-lifecycle-snapshot",
+    "allow-panel-session",
+    "core:event:allow-listen",
+    "core:event:allow-unlisten"
+  ]
+}

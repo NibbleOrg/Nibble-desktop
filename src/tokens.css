@@ -5,3 +5,10 @@
   background: #151514;
   color-scheme: dark;
 }
+
+html[data-quick-panel="true"],
+html[data-quick-panel="true"] body {
+  background: transparent;
+  color-scheme: light;
+  margin: 0;
+}
