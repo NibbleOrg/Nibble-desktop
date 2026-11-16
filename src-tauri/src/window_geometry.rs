@@ -22,6 +22,24 @@ pub fn fit(area: Rect, old: Option<Rect>, width: u32, height: u32, gap: i32) -> 
     }
 }
 
+/// Convert a constrained top-left physical rect to AppKit's bottom-left points.
+/// Anchor the conversion in the live window so virtual desktop origins and
+/// the primary screen's height need not be guessed.
+pub fn native_frame(
+    old: (f64, f64, f64, f64),
+    old_position: (i32, i32),
+    target: Rect,
+    scale: f64,
+) -> (f64, f64, f64, f64) {
+    let width = f64::from(target.width) / scale;
+    let height = f64::from(target.height) / scale;
+    (
+        old.0 + (f64::from(target.x) - f64::from(old_position.0)) / scale,
+        old.1 + old.3 - (f64::from(target.y) - f64::from(old_position.1)) / scale - height,
+        width,
+        height,
+    )
+}
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -88,5 +106,41 @@ mod tests {
                 height: 264
             }
         );
+    }
+}
+
+#[cfg(test)]
+mod native_frame_tests {
+    use super::*;
+    #[test]
+    fn places_frame_before_show_with_retina_pixel_to_point_conversion() {
+        let result = native_frame(
+            (1179.0, 1048.0, 650.0, 264.0),
+            (2358, 880),
+            Rect {
+                x: 2358,
+                y: 228,
+                width: 1300,
+                height: 528,
+            },
+            2.0,
+        );
+        assert_eq!(result, (1179.0, 1374.0, 650.0, 264.0));
+    }
+    #[test]
+    fn resize_keeps_native_top_edge_on_negative_origin_display() {
+        let result = native_frame(
+            (-1200.0, 100.0, 650.0, 264.0),
+            (-2400, -180),
+            Rect {
+                x: -2400,
+                y: -180,
+                width: 1300,
+                height: 1240,
+            },
+            2.0,
+        );
+        assert_eq!(result, (-1200.0, -256.0, 650.0, 620.0));
+        assert_eq!(result.1 + result.3, 364.0);
     }
 }

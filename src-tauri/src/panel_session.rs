@@ -196,3 +196,73 @@ mod close_tests {
         );
     }
 }
+
+/// Keep a different window from being selected as the hidden panel's fallback.
+pub fn hide_without_fallback<E>(
+    mut set_focusable: impl FnMut(bool) -> Result<(), E>,
+    hide: impl FnOnce() -> Result<(), E>,
+) -> Result<(), E> {
+    let suppressed = set_focusable(false);
+    let hidden = hide();
+    let reset = set_focusable(true);
+    hidden.and(suppressed).and(reset)
+}
+
+#[cfg(test)]
+mod fallback_focus_tests {
+    use super::*;
+    use std::cell::Cell;
+    #[test]
+    fn hiding_panel_cannot_select_workbench_as_fallback() {
+        let eligible = Cell::new(true);
+        let selected = Cell::new(false);
+        let result = hide_without_fallback(
+            |value| {
+                eligible.set(value);
+                Ok::<_, &str>(())
+            },
+            || {
+                selected.set(eligible.get());
+                Ok(())
+            },
+        );
+        assert_eq!(result, Ok(()));
+        assert!(!selected.get());
+        assert!(eligible.get(), "Workbench must be usable after closing");
+    }
+    #[test]
+    fn failed_hide_still_restores_workbench_focusability() {
+        let changes = std::cell::RefCell::new(Vec::new());
+        let result = hide_without_fallback(
+            |value| {
+                changes.borrow_mut().push(value);
+                Ok(())
+            },
+            || Err("hide failed"),
+        );
+        assert_eq!(result, Err("hide failed"));
+        assert_eq!(*changes.borrow(), [false, true]);
+    }
+    #[test]
+    fn suppression_failure_still_attempts_hide_and_cleanup() {
+        let hidden = Cell::new(false);
+        let reset = Cell::new(false);
+        let result = hide_without_fallback(
+            |value| {
+                if value {
+                    reset.set(true);
+                    Ok(())
+                } else {
+                    Err("suppression failed")
+                }
+            },
+            || {
+                hidden.set(true);
+                Ok(())
+            },
+        );
+        assert_eq!(result, Err("suppression failed"));
+        assert!(hidden.get());
+        assert!(reset.get());
+    }
+}

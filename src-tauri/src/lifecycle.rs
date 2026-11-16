@@ -1,7 +1,7 @@
 //! Main-thread macOS adapter. No content, clipboard or persisted UI drafts.
 #![cfg_attr(feature = "native-probe", allow(dead_code))]
-use crate::panel_session::{close_with_restore, Session, Ticket};
-use crate::window_geometry::{fit, Rect};
+use crate::panel_session::{close_with_restore, hide_without_fallback, Session, Ticket};
+use crate::window_geometry::{fit, native_frame, Rect};
 use objc2::rc::Retained;
 use objc2_app_kit::{
     NSApplicationActivationOptions, NSRunningApplication, NSWindow, NSWindowCollectionBehavior,
@@ -19,7 +19,7 @@ use tauri::{
     menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem, Submenu},
     tray::TrayIconBuilder,
     window::{Effect, EffectState, EffectsBuilder},
-    Emitter, Manager, PhysicalPosition, PhysicalSize, WebviewWindow,
+    Emitter, Manager, WebviewWindow,
 };
 use tauri_plugin_global_shortcut::GlobalShortcutExt;
 
@@ -178,15 +178,39 @@ fn geometry(app: &tauri::AppHandle, opening: bool, height: u32) -> Result<()> {
         (f64::from(height) * scale).round() as u32,
         (24.0 * scale).round() as i32,
     );
-    platform(panel.set_size(PhysicalSize::new(rect.width, rect.height)))?;
-    platform(panel.set_position(PhysicalPosition::new(rect.x, rect.y)))
+    // Tauri/Tao queues set_size/set_position onto the main dispatch queue even
+    // from the main thread. Commit one native frame synchronously before show
+    // (and on each resize tick), rather than displaying the old centered frame.
+    // SAFETY: geometry is called only on AppKit's main thread; this borrow is
+    // limited to the live NSWindow's immediate frame read/write.
+    let native = unsafe { &*platform(panel.ns_window())?.cast::<NSWindow>() };
+    let mut frame = native.frame();
+    let target = native_frame(
+        (
+            frame.origin.x,
+            frame.origin.y,
+            frame.size.width,
+            frame.size.height,
+        ),
+        (position.x, position.y),
+        rect,
+        platform(panel.scale_factor())?,
+    );
+    frame.origin.x = target.0;
+    frame.origin.y = target.1;
+    frame.size.width = target.2;
+    frame.size.height = target.3;
+    native.setFrame_display(frame, true);
+    Ok(())
 }
 pub fn open(app: &tauri::AppHandle) -> Result<()> {
     if STATE.with(|s| s.borrow().session.current().is_some()) {
         return Ok(());
     }
     let original = NSWorkspace::sharedWorkspace().frontmostApplication();
+
     geometry(app, true, View::Search.height())?;
+
     STATE.with(|s| {
         let mut s = s.borrow_mut();
         s.snapshot.session = Some(s.session.open());
@@ -210,9 +234,17 @@ pub fn open(app: &tauri::AppHandle) -> Result<()> {
         let _ = close(app, false);
         return Err(LifecycleError::WindowOperationFailed);
     }
+
     Ok(())
 }
 pub fn close(app: &tauri::AppHandle, restore: bool) -> Result<()> {
+    let suppress_fallback = restore
+        && STATE.with(|s| {
+            s.borrow()
+                .original
+                .as_ref()
+                .is_some_and(|original| original.processIdentifier() != std::process::id() as i32)
+        });
     let result = close_with_restore(
         || {
             STATE.with(|s| {
@@ -227,7 +259,19 @@ pub fn close(app: &tauri::AppHandle, restore: bool) -> Result<()> {
             })
         },
         || {
-            let result = window(app, "quick-panel").and_then(|w| platform(w.hide()));
+            let hide = || window(app, "quick-panel").and_then(|w| platform(w.hide()));
+            let result = if suppress_fallback {
+                match window(app, "workbench") {
+                    Ok(workbench) => hide_without_fallback(
+                        |enabled| platform(workbench.set_focusable(enabled)),
+                        hide,
+                    ),
+                    Err(error) => hide().and(Err(error)),
+                }
+            } else {
+                hide()
+            };
+
             publish(app);
             result
         },
@@ -243,6 +287,7 @@ pub fn close(app: &tauri::AppHandle, restore: bool) -> Result<()> {
                 #[allow(deprecated)]
                 let accepted = original
                     .activateWithOptions(NSApplicationActivationOptions::ActivateIgnoringOtherApps);
+
                 if accepted {
                     Ok(())
                 } else {
@@ -270,6 +315,7 @@ pub fn workbench(app: &tauri::AppHandle, settings: bool) -> Result<()> {
         publish(app);
     }
     let workbench = window(app, "workbench")?;
+
     platform(workbench.show())?;
     platform(workbench.unminimize())?;
     platform(workbench.set_focus())
@@ -409,6 +455,7 @@ pub fn setup(app: &mut tauri::App) -> std::result::Result<(), Box<dyn std::error
     // SAFETY: setup is on the AppKit main thread; borrow the live NSWindow only
     // for this synchronous call. It is never retained or passed to another thread.
     let native = unsafe { &*panel.ns_window()?.cast::<NSWindow>() };
+
     native.setCollectionBehavior(
         NSWindowCollectionBehavior::MoveToActiveSpace
             | NSWindowCollectionBehavior::FullScreenAuxiliary,
