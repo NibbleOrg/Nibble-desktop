@@ -99,3 +99,9 @@ pnpm audit 报告一项开发依赖 minimatch 中等级 glob 放大 DoS（GHSA-g
 
 `pnpm dev:probe` / `pnpm build:probe` 显式启用 `native-probe` Cargo feature。
 操作、依赖、回退和实机证据边界见[原生风险探测](native-window-probe.md)。默认启动仍为初始化双窗口，不启用探测原生代码。
+
+## #45 同次 CI 提速
+
+维护者追加授权将提速并入本次升级。使用 `Swatinem/rust-cache` v2，固定 `d1527c8f67ef9af357290475d4af4b0fab8f12e0`，对应 manifest 声明 Node 24；缓存 Cargo registry 和 `src-tauri/target` 的依赖产物，保留默认工具链/依赖环境哈希，不缓存 Cargo bin，不跳过任何检查。首次缓存未命中仍为冷构建，实际收益需比较后续命中运行，不能提前承诺分钟数。
+
+同一工作流、同一 PR 的新提交取消旧运行；非 PR 运行使用独立 run_id，不取消 main 的既有运行。当前完整 `macos` 检查及 contents:read 不变。回退提速部分只需移除缓存步骤和 concurrency 配置。新增第三方 Action 的完整依赖漏洞审计 not verified，需连同固定 SHA 与缓存行为一并审阅。
