@@ -16,6 +16,7 @@ Last verified: 2026-11-16 — 索引链接核对；生产业务与完整实机�
 | [初始化与命令](engineering/bootstrap.md) | 工具版本、依赖与实际验证范围 |
 | [Workbench 月历候选](engineering/workbench-calendar.md) | 深色外壳、日期实现与验证缺项 |
 | [窗口生命周期服务](engineering/window-lifecycle.md) | #30 候选接口、权限与正式实机验收缺项 |
+| [Quick Panel 演示候选](engineering/quick-panel-demo.md) | 本地体验构建、演示状态与验证边界 |
 | [原生风险探测](engineering/native-window-probe.md) | 隔离探测、复现步骤与未验证场景 |
 | [协作设施](engineering/collaboration-guardrails.md) | 模板、main 保护配置与实际启用证据 |
 | [架构](engineering/architecture.md) | 模块、状态、IPC 和测试边界 |
