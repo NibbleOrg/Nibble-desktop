@@ -222,3 +222,55 @@
     border-radius: 12px;
   }
 }
+.settings form {
+  max-width: 600px;
+}
+.settings label {
+  display: block;
+  margin: 20px 0 8px;
+  font-weight: 600;
+}
+.settings input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #73796c;
+  border-radius: 10px;
+  background: #151713;
+  color: inherit;
+  font: inherit;
+}
+.settings button {
+  margin: 4px 12px 4px 0;
+  padding: 10px 14px;
+  border: 1px solid #73796c;
+  border-radius: 10px;
+  background: #30362a;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.settings button:disabled,
+.settings input:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+.settings :focus-visible {
+  outline: 2px solid #c6d69d;
+  outline-offset: 3px;
+}
+.settings dt {
+  margin-top: 16px;
+  font-weight: 600;
+}
+.settings dd {
+  margin: 6px 0 0;
+  color: #b5bdab;
+  line-height: 1.7;
+}
+.settings [role="alert"] {
+  color: #f2b6a7;
+}
+.settings [role="status"] {
+  color: #c6d69d;
+}
