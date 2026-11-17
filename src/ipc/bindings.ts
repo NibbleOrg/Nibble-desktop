@@ -6,6 +6,8 @@ import type { InvokeOptions } from "@tauri-apps/api/core";
 /** Commands */
 export const commands = {
 	bootstrapInfo: (options?: InvokeOptions) => __TAURI_INVOKE<BootstrapInfo>("bootstrap_info", undefined, options),
+	settingsSnapshot: (options?: InvokeOptions) => __TAURI_INVOKE<SettingsSnapshot_Serialize>("settings_snapshot", undefined, options),
+	settingsSave: (shortcut: string, options?: InvokeOptions) => __TAURI_INVOKE<SettingsSnapshot_Serialize>("settings_save", { shortcut }, options),
 	calendarPreferences: (options?: InvokeOptions) => __TAURI_INVOKE<CalendarPreferences>("calendar_preferences", undefined, options),
 	lifecycleSnapshot: (options?: InvokeOptions) => __TAURI_INVOKE<Snapshot_Serialize>("lifecycle_snapshot", undefined, options),
 	panelClose: (session: number, options?: InvokeOptions) => __TAURI_INVOKE<null>("panel_close", { session }, options),
@@ -28,6 +30,28 @@ export type CalendarPreferences = {
 };
 
 export type LifecycleError = "windowOperationFailed" | "windowUnavailable" | "displayUnavailable" | "focusRestoreRejected" | "staleOrBusy" | "forbiddenWindow" | "staleSession" | "returnToSearchFirst" | "shortcutRegistrationFailed";
+
+export type SettingsError = "invalidShortcut" | "restartRequired" | "registrationFailed" | "saveFailed" | "recoveryFailed" | "serviceUnavailable" | "forbiddenWindow";
+
+export type SettingsSnapshot = SettingsSnapshot_Serialize | SettingsSnapshot_Deserialize;
+
+export type SettingsSnapshot_Deserialize = {
+	version: number,
+	shortcut: string,
+	available: boolean,
+	error?: SettingsError | null,
+	startupRecovered: boolean,
+	appVersion: string,
+};
+
+export type SettingsSnapshot_Serialize = {
+	version: number,
+	shortcut: string,
+	available: boolean,
+	error: SettingsError | null,
+	startupRecovered: boolean,
+	appVersion: string,
+};
 
 export type Snapshot = Snapshot_Serialize | Snapshot_Deserialize;
 

@@ -21,7 +21,6 @@ use tauri::{
     window::{Effect, EffectState, EffectsBuilder},
     Emitter, Manager, WebviewWindow,
 };
-use tauri_plugin_global_shortcut::GlobalShortcutExt;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
@@ -131,6 +130,18 @@ fn publish(app: &tauri::AppHandle) {
     for label in ["workbench", "quick-panel"] {
         let _ = app.emit_to(label, "lifecycle-version", snapshot().version);
     }
+}
+pub fn shortcut_status(app: &tauri::AppHandle, available: bool, failed: bool) {
+    STATE.with(|state| {
+        let mut state = state.borrow_mut();
+        state.snapshot.shortcut_available = available;
+        state.snapshot.shortcut_failure =
+            failed.then(|| "快捷键配置未完成，请在设置中查看恢复状态；仍可从托盘打开面板。".into());
+        if available && state.snapshot.fault == Some(LifecycleError::ShortcutRegistrationFailed) {
+            state.snapshot.fault = None;
+        }
+    });
+    publish(app);
 }
 fn report(app: &tauri::AppHandle, result: Result<()>) {
     if let Err(error) = result {
@@ -556,32 +567,25 @@ pub fn setup(app: &mut tauri::App) -> std::result::Result<(), Box<dyn std::error
     });
     // Install this optional service after the tray. Plugin-manager failure must
     // leave Workbench and the tray usable, just like a key registration failure.
-    let shortcut_result = app
+    let plugin_ready = app
         .handle()
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
-                .with_handler(|app, _, event| {
+                .with_handler(|app, key, event| {
                     if event.state == tauri_plugin_global_shortcut::ShortcutState::Pressed {
                         let handle = app.clone();
-                        let _ = app.run_on_main_thread(move || toggle(&handle));
+                        let key = *key;
+                        let _ = app.run_on_main_thread(move || {
+                            if crate::settings::handles(&key) {
+                                toggle(&handle);
+                            }
+                        });
                     }
                 })
                 .build(),
         )
-        .map_err(|error| format!("快捷键服务初始化失败：{error}"))
-        .and_then(|()| {
-            app.global_shortcut()
-                .register("Alt+Space")
-                .map_err(|error| format!("系统拒绝注册 ⌥Space：{error}"))
-        });
-    STATE.with(|s| {
-        let mut s = s.borrow_mut();
-        s.snapshot.shortcut_available = shortcut_result.is_ok();
-        s.snapshot.shortcut_failure = shortcut_result.err();
-        if !s.snapshot.shortcut_available {
-            s.snapshot.fault = Some(LifecycleError::ShortcutRegistrationFailed);
-        }
-    });
+        .is_ok();
+    crate::settings::initialize(app.handle(), plugin_ready);
     let handle = app.handle().clone();
     panel.on_window_event(move |event| {
         match event {

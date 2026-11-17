@@ -7,6 +7,8 @@
     "allow-settings-acknowledged",
     "core:event:allow-listen",
     "core:event:allow-unlisten",
-    "allow-calendar-preferences"
+    "allow-calendar-preferences",
+    "allow-settings-snapshot",
+    "allow-settings-save"
   ]
 }

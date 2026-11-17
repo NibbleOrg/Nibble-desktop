@@ -12,3 +12,15 @@ it("uses the generated command and propagates transport failures", async () => {
   invoke.mockRejectedValueOnce(new Error("transport unavailable"));
   await expect(readBootstrapInfo()).rejects.toThrow("transport unavailable");
 });
+it("uses generated settings commands with the native shortcut payload", async () => {
+  const { commands } = await import("./bindings");
+  invoke.mockResolvedValueOnce({ version: 2, shortcut: "Alt+Space" });
+  await commands.settingsSave("Alt+Space");
+  expect(invoke).toHaveBeenLastCalledWith(
+    "settings_save",
+    { shortcut: "Alt+Space" },
+    undefined,
+  );
+  invoke.mockRejectedValueOnce("forbiddenWindow");
+  await expect(commands.settingsSnapshot()).rejects.toBe("forbiddenWindow");
+});

@@ -46,3 +46,7 @@ Rust 统一协调 Quick Panel 显隐、原应用焦点和原生尺寸，React �
 ## Workbench 系统日期偏好候选
 
 受限的 `calendar_preferences` 命令由 Rust 读取 macOS Foundation 地区与周首日覆盖，Workbench 独占授权，前端不访问系统偏好存储。字段、刷新/失败行为及实机缓存限制见[Workbench 月历](workbench-calendar.md#系统日期偏好修复候选)。不读取 Calendar Event 或外部 Calendar Source。
+
+## 全局快捷键设置候选
+
+快捷键配置由 Rust 主线程协调注册及 JSON 保存，Workbench 专属命令与版本通知复用窗口服务。模块、权限、回滚语义和未验证项见[快捷键设置候选](shortcut-settings.md)；候选实现不表示原生保存/重启验收通过。

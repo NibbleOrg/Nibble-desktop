@@ -7,7 +7,17 @@ const lifecycle = vi.hoisted(() => ({
 }));
 vi.mock("../ipc/useLifecycle", () => ({ useLifecycle: () => lifecycle }));
 vi.mock("../ipc/bindings", () => ({
-  commands: { settingsAcknowledged: vi.fn().mockResolvedValue(undefined) },
+  commands: {
+    settingsAcknowledged: vi.fn().mockResolvedValue(undefined),
+    settingsSnapshot: vi.fn().mockResolvedValue({
+      version: 2,
+      shortcut: "Alt+Space",
+      available: true,
+      error: null,
+      startupRecovered: false,
+      appVersion: "0.1.0",
+    }),
+  },
 }));
 import { commands } from "../ipc/bindings";
 it("consumes native settings navigation and keeps the calendar mounted with reduced motion", () => {

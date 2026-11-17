@@ -9,6 +9,9 @@ mod native_probe;
 mod panel_session;
 #[cfg(any(test, all(feature = "native-probe", target_os = "macos")))]
 mod probe_schedule;
+mod settings;
+mod settings_store;
+mod shortcut_settings;
 #[cfg(any(test, target_os = "macos"))]
 mod window_geometry;
 #[derive(Debug, PartialEq, serde::Serialize, specta::Type)]
@@ -30,6 +33,8 @@ fn bootstrap_info() -> BootstrapInfo {
 pub fn command_builder() -> tauri_specta::Builder<tauri::Wry> {
     tauri_specta::Builder::new().commands(tauri_specta::collect_commands![
         bootstrap_info,
+        settings::settings_snapshot,
+        settings::settings_save,
         lifecycle_commands::calendar_preferences,
         lifecycle_commands::lifecycle_snapshot,
         lifecycle_commands::panel_close,

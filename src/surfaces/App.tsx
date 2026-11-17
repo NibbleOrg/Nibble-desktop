@@ -9,9 +9,10 @@ import styles from "./App.module.css";
 import workbench from "./Workbench.module.css";
 import { Calendar } from "./CalendarView";
 import { Panel } from "./Panel";
+import { Settings } from "./Settings";
 const errors: Record<LifecycleError, string> = {
   shortcutRegistrationFailed:
-    "⌥Space 注册失败。可从托盘打开 Quick Panel；快捷键设置由设置功能接入。",
+    "快捷键注册失败。可从托盘打开 Quick Panel，并进入设置重试。",
   focusRestoreRejected: "系统未接受焦点恢复；面板已关闭，可自行切回原应用。",
   windowOperationFailed: "窗口操作失败，请从托盘重试。",
   displayUnavailable: "没有可用显示器，请连接显示器后重试。",
@@ -91,19 +92,7 @@ function Workbench({
         <div hidden={route !== "home"} className={workbench.route}>
           <Calendar reducedMotion={snapshot?.reducedMotion ?? false} />
         </div>
-        {route === "settings" && (
-          <section className={`${workbench.settings} ${workbench.route}`}>
-            <p className={workbench.eyebrow}>SETTINGS</p>
-            <h1>设置</h1>
-            <h2>Quick Panel</h2>
-            <p>
-              全局快捷键：⌥Space{" "}
-              {snapshot?.shortcutAvailable ? "（已注册）" : "（未注册）"}
-            </p>
-            <p>配置与保存功能尚未实现。</p>
-            <p>关闭窗口后继续驻留托盘；⌘Q 完整退出。</p>
-          </section>
-        )}
+        {route === "settings" && <Settings version={snapshot?.version ?? 0} />}
         {snapshot?.fault && (
           <p role="alert">
             {errors[snapshot.fault] ?? "窗口服务异常，请从托盘重试。"}
