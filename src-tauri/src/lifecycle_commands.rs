@@ -15,6 +15,21 @@ fn current(session: u32) -> Result<(), LifecycleError> {
         Err(LifecycleError::StaleSession)
     }
 }
+fn authorize_workbench(label: &str) -> Result<(), LifecycleError> {
+    if label == "workbench" {
+        Ok(())
+    } else {
+        Err(LifecycleError::ForbiddenWindow)
+    }
+}
+#[tauri::command]
+#[specta::specta]
+pub fn calendar_preferences(
+    window: WebviewWindow,
+) -> Result<crate::calendar_preferences::CalendarPreferences, LifecycleError> {
+    authorize_workbench(window.label())?;
+    Ok(crate::calendar_preferences::read())
+}
 #[tauri::command]
 #[specta::specta]
 pub fn lifecycle_snapshot(window: WebviewWindow) -> Result<Snapshot, LifecycleError> {
@@ -64,9 +79,7 @@ pub fn panel_settings(window: WebviewWindow, session: u32) -> Result<(), Lifecyc
 #[tauri::command]
 #[specta::specta]
 pub fn settings_acknowledged(window: WebviewWindow) -> Result<(), LifecycleError> {
-    if window.label() != "workbench" {
-        return Err(LifecycleError::ForbiddenWindow);
-    }
+    authorize_workbench(window.label())?;
     lifecycle::acknowledge_settings(window.app_handle());
     Ok(())
 }
@@ -82,6 +95,10 @@ mod tests {
     use super::*;
     #[test]
     fn caller_identity_matrix() {
+        assert!(authorize_workbench("workbench").is_ok());
+        for label in ["quick-panel", "native-probe", "", "remote"] {
+            assert!(authorize_workbench(label).is_err());
+        }
         assert!(authorize("quick-panel", true).is_ok());
         assert!(authorize("workbench", false).is_ok());
         assert!(authorize("workbench", true).is_err());

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { calendarDays, sameDay, weekStart } from "./calendar";
+import { calendarDays, sameDay } from "../calendar";
+import { useCalendarPreferences } from "../ipc/useCalendarPreferences";
 import styles from "./Workbench.module.css";
 
 export function Calendar({ reducedMotion }: { reducedMotion: boolean }) {
@@ -13,13 +14,10 @@ export function Calendar({ reducedMotion }: { reducedMotion: boolean }) {
     return () => window.clearTimeout(timer);
   }, [month]);
   const [direction, setDirection] = useState(1);
-  const [locale, setLocale] = useState(
-    () => new Intl.DateTimeFormat().resolvedOptions().locale,
-  );
+  const { preferences, failed } = useCalendarPreferences();
   useEffect(() => {
     const refresh = () => {
       setNow(new Date());
-      setLocale(new Intl.DateTimeFormat().resolvedOptions().locale);
     };
     const timer = window.setInterval(refresh, 30_000);
     window.addEventListener("focus", refresh);
@@ -30,9 +28,10 @@ export function Calendar({ reducedMotion }: { reducedMotion: boolean }) {
       window.removeEventListener("languagechange", refresh);
     };
   }, []);
+  const locale = preferences?.locale;
   const format = (options: Intl.DateTimeFormatOptions) =>
     new Intl.DateTimeFormat(locale, { ...options, calendar: "gregory" });
-  const first = weekStart(locale);
+  const first = preferences?.firstWeekday ?? 0;
   const days = calendarDays(month.getFullYear(), month.getMonth(), first);
   const monthLabel = format({ year: "numeric", month: "long" }).format(month);
   function renderGrid(displayMonth: Date, isOutgoing: boolean) {
@@ -82,12 +81,27 @@ export function Calendar({ reducedMotion }: { reducedMotion: boolean }) {
     setDirection(delta);
     setMonth(new Date(month.getFullYear(), month.getMonth() + delta, 1, 12));
   }
+  if (!preferences)
+    return (
+      <section aria-label="月历">
+        <p role={failed ? "alert" : "status"}>
+          {failed
+            ? "系统日期偏好读取失败，请重新激活窗口重试。"
+            : "正在读取系统日期偏好…"}
+        </p>
+      </section>
+    );
   return (
     <section
       className={styles.calendar}
       aria-label="月历"
       data-reduced-motion={reducedMotion}
     >
+      {failed && (
+        <p role="alert">
+          系统日期偏好刷新失败，当前显示上次读取的设置；请重新激活窗口重试。
+        </p>
+      )}
       <header className={styles.calendarHeader}>
         <div>
           <p className={styles.eyebrow}>CALENDAR</p>

@@ -6,6 +6,7 @@ import type { InvokeOptions } from "@tauri-apps/api/core";
 /** Commands */
 export const commands = {
 	bootstrapInfo: (options?: InvokeOptions) => __TAURI_INVOKE<BootstrapInfo>("bootstrap_info", undefined, options),
+	calendarPreferences: (options?: InvokeOptions) => __TAURI_INVOKE<CalendarPreferences>("calendar_preferences", undefined, options),
 	lifecycleSnapshot: (options?: InvokeOptions) => __TAURI_INVOKE<Snapshot_Serialize>("lifecycle_snapshot", undefined, options),
 	panelClose: (session: number, options?: InvokeOptions) => __TAURI_INVOKE<null>("panel_close", { session }, options),
 	panelTransition: (session: number, view: View, options?: InvokeOptions) => __TAURI_INVOKE<Snapshot_Serialize>("panel_transition", { session, view }, options),
@@ -19,6 +20,11 @@ export const commands = {
 export type BootstrapInfo = {
 	version: string,
 	stage: string,
+};
+
+export type CalendarPreferences = {
+	locale: string,
+	firstWeekday: number,
 };
 
 export type LifecycleError = "windowOperationFailed" | "windowUnavailable" | "displayUnavailable" | "focusRestoreRejected" | "staleOrBusy" | "forbiddenWindow" | "staleSession" | "returnToSearchFirst" | "shortcutRegistrationFailed";

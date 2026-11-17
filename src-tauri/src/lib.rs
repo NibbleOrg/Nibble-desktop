@@ -1,4 +1,6 @@
 #[cfg(target_os = "macos")]
+mod calendar_preferences;
+#[cfg(target_os = "macos")]
 mod lifecycle;
 #[cfg(target_os = "macos")]
 mod lifecycle_commands;
@@ -28,6 +30,7 @@ fn bootstrap_info() -> BootstrapInfo {
 pub fn command_builder() -> tauri_specta::Builder<tauri::Wry> {
     tauri_specta::Builder::new().commands(tauri_specta::collect_commands![
         bootstrap_info,
+        lifecycle_commands::calendar_preferences,
         lifecycle_commands::lifecycle_snapshot,
         lifecycle_commands::panel_close,
         lifecycle_commands::panel_transition,
