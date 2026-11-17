@@ -1,0 +1,6 @@
+{
+  "build": {
+    "beforeDevCommand": "pnpm exec vite --mode local-experience --host 127.0.0.1 --port 1420 --strictPort",
+    "beforeBuildCommand": "pnpm exec tsc --noEmit && pnpm exec vite build --mode local-experience"
+  }
+}

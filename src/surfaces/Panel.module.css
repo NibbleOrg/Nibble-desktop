@@ -1,0 +1,106 @@
+.content {
+  position: relative;
+}
+.search {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.search input {
+  font-size: 19px;
+}
+.row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: calc(100% - 12px);
+  text-align: left;
+}
+.row[aria-selected="true"] {
+  background: #fff9;
+  box-shadow:
+    inset 3px 0 #cf7a42,
+    0 3px 10px #30251912;
+}
+.row small {
+  color: #71675d;
+}
+.toolbar,
+.controls,
+.presets {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.toolbar h2 {
+  margin: 0;
+  font-size: 17px;
+}
+.tool {
+  outline-offset: -3px;
+}
+.tool label {
+  display: block;
+  font-size: 12px;
+}
+.tool textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 65px;
+  resize: vertical;
+  border: 1px solid #b7aa97;
+  border-radius: 9px;
+  padding: 10px;
+  color: #28251f;
+  background: #ffffff90;
+  font: inherit;
+  font-size: 13px;
+}
+.tool select {
+  margin: 5px;
+  max-width: 100%;
+  padding: 5px;
+}
+.tool [role="listbox"] {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.tool [role="option"] {
+  white-space: pre-wrap;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.tool [aria-selected="true"] {
+  background: #fbe0c5;
+}
+.notice {
+  border-left: 2px solid #b26e3b;
+  padding-left: 8px;
+  color: #615345;
+}
+.lab {
+  border-top: 1px dashed #b7aa97;
+  margin-top: 8px;
+}
+.reference {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  overflow: auto;
+  border: 1px solid #d4c5b5;
+  border-radius: 16px;
+  background: #fff9ef;
+  padding: 16px;
+  box-shadow: 0 8px 24px #241b1420;
+}
+.reference dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px;
+  font-size: 12px;
+}
+.reference dd {
+  margin: 0;
+}
