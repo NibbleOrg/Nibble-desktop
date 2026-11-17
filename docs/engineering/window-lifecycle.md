@@ -6,6 +6,8 @@ Last verified: 2026-11-16 — 候选实现与自动化核对；原生实机验�
 
 对应 [#30](https://github.com/NibbleOrg/Nibble-desktop/issues/30)，依据[原生决议](https://github.com/NibbleOrg/Nibble-desktop/issues/21#issuecomment-6854118028)及[探测交接](native-window-probe.md)。本页记录候选实现接口及验收缺项，不表示窗口体验已通过。产品合同仍见[交互](../product/interaction.md)。
 
+后续合并基线的检查结果及原生待补清单见[2026-11-17 验收进度](evidence/lifecycle-acceptance-2026-11-17.md)；下文候选时期的记录保留为历史证据。
+
 ## 范围与入口
 
 默认 `pnpm dev` / `pnpm build` 使用配置中的 Workbench 与 Quick Panel 两个窗口。启动显示 Home；Workbench 关闭事件被拦截为隐藏，不卸载 React。托盘提供打开 Workbench、打开 Quick Panel、演示暂停、设置及退出；菜单 ⌘Q 调用完整退出。Dock reopen 与官方单实例插件的第二实例回调只激活原有 Workbench，不重新加载其 URL。路由可在同次运行保留；实际月历及月份保留由 [#31](https://github.com/NibbleOrg/Nibble-desktop/issues/31)接入验证，本票不伪造月历验收。
