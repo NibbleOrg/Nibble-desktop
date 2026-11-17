@@ -40,3 +40,22 @@ Rust 使用 Tauri `app_config_dir()` 下的 `settings.json`，macOS 当前应用
 以下仍 **not verified**：本次设置页原生截图/窄窗视觉；在 Settings 保存新组合后立即从其他应用唤起/关闭；其他进程占用组合时的真实冲突和旧键恢复；真实文件系统写入/目录同步失败后的 UI 与注册恢复；完整退出、重新启动读取并注册新组合；损坏文件保留与托盘恢复的整体验证。文件及事务单测不代替跨进程和系统注册验收。前置窗口服务的原生缺项沿用其[证据记录](window-lifecycle.md)，不因此关闭前置或本任务。
 
 后续实机步骤：保存 Control+Shift+Space，确认只有注册与保存成功才提示；从其他应用唤起并关闭；⌘Q 后重新启动确认组合和状态；以独立测试进程占用候选组合验证拒绝及旧组合仍可用；在备份配置后分别测试损坏文件和不可写目录，观察默认尝试、失败/恢复提示及托盘入口，最后恢复原配置与权限。不得在未备份真实配置时做故障注入。
+
+## 独占注册后续候选
+
+维护者在实施对话中明确要求“要求独占，其他应用已独占时保存失败并恢复旧键”。这替代先前默认依赖系统共享注册语义的候选；原有共享注册探测保留为历史证据，不视作新契约通过。产品行为见[交互契约](../product/interaction.md)。
+
+`global-hotkey` 0.8.0 的 macOS RegisterEventHotKey 原本传 options=0；通过 Cargo 本地 patch 将该值改为 `kEventHotKeyExclusive`（1）。继续使用 Tauri 插件的同一事件与注册管理器，没有注册前探测/释放造成的竞态窗口。源码来自原锁定 crates.io 包，源归档 checksum、许可、精确差异和回滚步骤见 [补丁来源说明](../../src-tauri/vendor/global-hotkey/NIBBLE-PATCH.md)。媒体键使用共享 event tap，不满足独占，Rust 校验拒绝；未知媒体键旧配置按既有坏配置恢复规则尝试默认值。
+
+原生回归例程 `src-tauri/examples/shortcut_exclusivity.rs` 在主线程创建管理器，以独立子进程占用 Control+Shift+F18，应用实际 Service 先注册 Control+Shift+F19，再改向被占用键。修复前断言失败（Ok 而不是 RegistrationFailed）；补丁后通过，旧注册及配置恢复，释放占用后可重新注册。存储适配为内存，避免修改用户配置；既有真实文件测试继续覆盖 JSON。执行命令：
+
+```sh
+cargo build --manifest-path src-tauri/Cargo.toml --locked --example shortcut_exclusivity
+src-tauri/target/debug/examples/shortcut_exclusivity
+```
+
+该例程要求真实 macOS GUI 会话，沙箱不可用时不能把系统调用失败当作注册冲突通过；常规 cargo test 不自动占用用户快捷键。F18/F19 已被其他应用占用时先报告前置失败，不卸载其注册。子进程在完成或失败时退出释放测试注册。
+
+已合并基线的设置保存、完整退出后读取、无效输入及恢复默认值已完成原生观察，详见[验收补充](https://github.com/NibbleOrg/Nibble-desktop/issues/33#issuecomment-6952224842)；本次补丁的 UI 冲突与恢复结果须另记，不复用旧构建的原生通过结论。
+
+本次独占候选原生 UI 验收（macOS 26.7.1 / 25G241）：独立回归例程 `--hold` 占用候选键时，在新构建 Settings 保存 Control+Shift+F18，观察到系统拒绝提示、编辑草稿保留、当前有效值仍为已注册的 alt+Space，无保存成功提示。退出占用进程后，同一草稿重试成功，参考同步更新；随后恢复默认 alt+Space 并保存，辅助进程已结束。此证据覆盖真实系统拒绝及设置恢复、解除占用后重试；未扩大为文件系统故障注入、窄窗或从其他应用按键触发的直接观察。

@@ -100,7 +100,7 @@ export function Settings({ version }: { version: number }) {
             <p id="shortcut-help">
               使用 Alt、Control、Shift、Super 与按键名称组合，例如
               Alt+Space（⌥Space）。至少包含 Alt、Control 或 Super。Super 对应
-              ⌘。
+              ⌘。采用独占注册，不支持媒体键。
             </p>
             <button type="submit" disabled={pending}>
               {pending ? "正在保存…" : "保存快捷键"}

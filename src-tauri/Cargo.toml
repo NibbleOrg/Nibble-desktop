@@ -30,3 +30,9 @@ objc2 = { version = "=0.6.5" }
 objc2-app-kit = { version = "=0.3.2", default-features = false, features = ["std", "libc", "NSAccessibility", "NSWindow", "NSResponder", "NSWorkspace", "NSRunningApplication"] }
 
 objc2-foundation = { version = "=0.3.2", default-features = false, features = ["std", "NSCalendar", "NSLocale", "NSString"] }
+
+[dev-dependencies]
+global-hotkey = "=0.8.0"
+
+[patch.crates-io]
+global-hotkey = { path = "vendor/global-hotkey" }

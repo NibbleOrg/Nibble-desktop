@@ -5,12 +5,23 @@ use std::{
     io::{Read, Write},
     path::PathBuf,
 };
-use tauri_plugin_global_shortcut::{Modifiers, Shortcut};
+use tauri_plugin_global_shortcut::{Code, Modifiers, Shortcut};
 pub fn normalize(input: &str) -> Result<String, ()> {
     if input.len() > 128 {
         return Err(());
     }
     let key: Shortcut = input.parse().map_err(|_| ())?;
+    // macOS media keys use a shared event tap, not exclusive Carbon registration.
+    if matches!(
+        key.key,
+        Code::MediaPlayPause
+            | Code::MediaTrackNext
+            | Code::MediaTrackPrevious
+            | Code::MediaFastForward
+            | Code::MediaRewind
+    ) {
+        return Err(());
+    }
     if !key
         .mods
         .intersects(Modifiers::ALT | Modifiers::CONTROL | Modifiers::SUPER)
@@ -131,7 +142,15 @@ mod tests {
     }
     #[test]
     fn validation_requires_non_shift_modifier_and_valid_key() {
-        for key in ["", "Space", "Shift+Space", "Alt+Bogus", "Alt+Space+KeyA"] {
+        for key in [
+            "",
+            "Space",
+            "Shift+Space",
+            "Alt+Bogus",
+            "Alt+Space+KeyA",
+            "Alt+MediaPlayPause",
+            "Control+MediaTrackNext",
+        ] {
             assert!(normalize(key).is_err(), "{key}");
         }
         assert_eq!(normalize("Alt+Space"), normalize("Option+Space"));
