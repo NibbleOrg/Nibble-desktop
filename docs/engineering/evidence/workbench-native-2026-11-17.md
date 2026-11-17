@@ -54,3 +54,17 @@ Last verified: 2026-11-17 — 合并提交上的 Intel macOS 原生 smoke；未�
 截图仅包含 Nibble 窗口，没有保存系统设置中的账户画面。原生修复候选尚未合并，原合并提交不因本记录而自动变为通过。
 
 最终本地检查：`pnpm test`（13 前端 / 23 Rust）、`pnpm lint`、`pnpm typecheck`（含生成漂移）、`pnpm format:check`、`git diff --check` 及 `pnpm exec tauri build --bundles app` 全部通过。文档相对链接核对通过。未重复隔离探测 feature 的原生构建，仍 not verified；本修复无探测行为变更。修复 PR 的独立 CR/远端 CI 与提交级人类审批尚待完成。
+
+## PR 50 合并后的窄窗与键盘核对
+
+PR 50 已合并为 `a8a5fae3a1806c71c5fcb03e1644efbaa147e6be`；其最终候选 `22ba370509746793bc8d52c7c5bfb0ea3a91e990` 与合并提交的 `src` / `src-tauri` 无差异。本轮继续使用该候选构建的本地 `.app`，没有更改业务代码。PR 的 macos CI 成功；维护者本人已补充最终候选审批。历史段落中的“候选尚未合并”仅描述当时状态。
+
+- 将原生 Workbench 手动拖小，窗口截图为 906×706 像素。月份导航与日期区域可独立滚动到顶部/底部；底部设置轨道保持可见并可进入 Settings。滚动位置在缩小时可能不在顶部，但向上滚动可完整到达月份控制，不存在导航永久不可达。
+  [窄窗顶部](workbench-native-narrow-top.jpg)、[窄窗底部](workbench-native-narrow-bottom.jpg)、[窄窗设置](workbench-native-narrow-settings.jpg)。
+- 在 Home 按 Tab，原生 AX 焦点到“设置”按钮；按 Space 后进入 Settings → Quick Panel，验证键盘入口。其他焦点顺序与所有控件的完整键盘矩阵未扩大为通过。
+- Workbench 前台及 Finder 前台分别通过工具发送 ⌥Space，读取结果均仍为 Workbench。工具对 app/window 的激活与选取可能干扰面板，不能将其断言为产品快捷键失败，也不能标记 Quick Panel → ⌘, 集成为通过。此项需要维护者手动确认。
+- 完成后 ⌘Q 退出并从同一路径重启，回到 Home 当前月及等距大窗口；没有残留测试的小窗口尺寸，没有改系统设置。
+
+剩余实质验收：Quick Panel → Settings 原生整合，以及减少动态模式的无位移/淡入视觉确认。已向维护者提供精确步骤，未收到结果前保持 not verified。根据[原生阶段验收决议](https://github.com/NibbleOrg/Nibble-desktop/issues/21#issuecomment-6854118028)，Apple Silicon、多显示器、Space/全屏及动态短录屏仍是整体原生体验的阶段门槛，本机 Intel smoke 不能替代。这些环境缺项不阻塞继续开发，但不能宣称整体原生验收通过，也不由 Agent 静默豁免。
+
+合并后 CI 回读：[PR 50 合并提交 main run](https://github.com/NibbleOrg/Nibble-desktop/actions/runs/43984425243) success；[PR 49 合并提交 main run](https://github.com/NibbleOrg/Nibble-desktop/actions/runs/43913987099) success。此前 queued 记录保留为历史快照，不再代表最新运行状态。
