@@ -41,3 +41,16 @@ Last verified: 2026-11-17 — 合并基线自动化通过；本轮原生操作 n
 - [快捷键持久化](https://github.com/NibbleOrg/Nibble-desktop/issues/33)尚未交付修改、可靠保存与失败恢复；当前默认键注册不能替代验收。
 - [整体验收与交接](https://github.com/NibbleOrg/Nibble-desktop/issues/34)须在最终组合提交重测集成场景并收齐证据。Apple Silicon、多屏、Space/全屏及动态证据缺项继续保留，不能宣称阶段通过。
 - 本轮不关闭窗口协调任务、不改变产品承诺或降低验收门槛；未发现新的产品决策需要建立 Wayfinder 地图。
+
+## 原生工具恢复后的续测
+
+2026-11-17，在 `a78bceb` 上继续验收；相较上述 `0bdab7f` 仅增加本验收文档及链接，业务源码无变化。前文“没有可用工具”描述首轮状态，以下为后续实际尝试，不替代待补矩阵。
+
+- 通过原生工具对旧 Nibble 执行 ⌘Q，返回 `App quit`。随后 `pnpm exec tauri build --bundles app` 通过，重新生成本仓库 `src-tauri/target/release/bundle/macos/Nibble Local.app`，再通过完整路径启动。
+- 原生 AX 确认 Workbench 显示 Home、November 2026、今天为 17；页面 URL 为 `tauri://localhost/index.html?surface=workbench`。这是当前构建启动的有限证据，不是完整生命周期验收。
+- 从 Workbench 发送工具键 `alt+space` 后，AX 及截图仍显示 Workbench；未观察到 Quick Panel。工具可能在读取时激活所绑定窗口，不能据此判定真实快捷键注册失败。
+- 绑定 Finder 后再次发送 `alt+space`，返回 Quick Look 预览窗口的 AX（含 Exit Full Screen、Close、Share file），没有确认 Quick Panel。这里只记录工具实际结果，未确定工具输入、系统快捷键或产品行为中的原因，不把它记为通过或已复现的产品缺陷。
+- 随后对 Finder 发送 Escape 并读取状态时，工具报 `com.apple.ScreenCaptureKit.SCStreamErrorDomain Code=-3811`（audio/video capture failure）。无法确认清理结果，未继续交互或通过其他输入技术绕过。
+- 原生工具还出现长时间响应延迟。本轮没有取得跨应用焦点、关闭重开、Space/全屏、多屏或动态短录屏；这些项仍为 **not verified**。后续须由稳定工具或维护者逐场景补证据，不能用重建成功替代。
+
+本轮仅补充上述有限观察；未修改系统偏好、快捷键配置或用户数据。原生工具截图已在验收对话显示，未新增仓库截图文件。
